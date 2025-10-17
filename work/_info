@@ -13,7 +13,7 @@ Eff_d
 Z0 w1760643296
 Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
 Z2 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
-!i122 18
+!i122 40
 Z3 d/home/lucas/cl-elevador
 Z4 8/home/lucas/cl-elevador/src/ff_d.vhd
 Z5 F/home/lucas/cl-elevador/src/ff_d.vhd
@@ -23,9 +23,9 @@ V=@N9<Ulhn>IEc71EQC6G00
 !s100 0Zj?oLSYU@1]XT<Ulgi1`3
 Z6 OV;C;2020.1;71
 32
-Z7 !s110 1760644861
+Z7 !s110 1760733323
 !i10b 1
-Z8 !s108 1760644861.000000
+Z8 !s108 1760733323.000000
 Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/ff_d.vhd|
 Z10 !s107 /home/lucas/cl-elevador/src/ff_d.vhd|
 !i113 1
@@ -35,7 +35,7 @@ Aarch
 R1
 R2
 DEx4 work 4 ff_d 0 22 =@N9<Ulhn>IEc71EQC6G00
-!i122 18
+!i122 40
 l15
 L14 13
 VKPJkVI=@3dS@Q4<fBc4Z81
@@ -75,24 +75,24 @@ Z18 !s107 /home/lucas/cl-elevador/src/reg.vhd|
 R11
 R12
 Ereg
-Z19 w1760723224
+Z19 w1760733317
 R13
 R14
 R1
 R2
-!i122 21
+!i122 41
 R3
 R15
 R16
 l0
 L5 1
-VS3<[IYKSj?53o7SdUW^DB0
-!s100 FfHmmm2Z9hKUgn`TGBM2d3
+V<YB<HJZh=KE0j@B5U5BX71
+!s100 g1l4]l:R_4?:>W>IRS:Mi2
 R6
 32
-Z20 !s110 1760723225
+R7
 !i10b 1
-Z21 !s108 1760723225.000000
+R8
 R17
 R18
 !i113 1
@@ -103,17 +103,17 @@ R13
 R14
 R1
 R2
-DEx4 work 3 reg 0 22 S3<[IYKSj?53o7SdUW^DB0
-!i122 21
-l17
-L14 15
-VSC3:Oi8ALi=34=3F1NM:02
-!s100 BDSU`Cd5kiK<SNgBdzWz=2
+Z20 DEx4 work 3 reg 0 22 <YB<HJZh=KE0j@B5U5BX71
+!i122 41
+l22
+Z21 L19 19
+V3QOJcPBf4l2Hj[n3OMBc93
+!s100 M?`:LZF;;1[=P4?R;NeW42
 R6
 32
-R20
+R7
 !i10b 1
-R21
+R8
 R17
 R18
 !i113 1
