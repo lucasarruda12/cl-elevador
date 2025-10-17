@@ -10,43 +10,112 @@ z2
 cModel Technology
 d/home/lucas
 Eff_d
-Z0 w1760641004
+Z0 w1760643296
 Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
 Z2 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
-!i122 0
+!i122 18
 Z3 d/home/lucas/cl-elevador
 Z4 8/home/lucas/cl-elevador/src/ff_d.vhd
 Z5 F/home/lucas/cl-elevador/src/ff_d.vhd
 l0
 L4 1
-Vh]>IT]TIFL<i<UczF=fE61
-!s100 M6b_^ai_JBehg=NUe1izf0
+V=@N9<Ulhn>IEc71EQC6G00
+!s100 0Zj?oLSYU@1]XT<Ulgi1`3
 Z6 OV;C;2020.1;71
 32
-Z7 !s110 1760641006
+Z7 !s110 1760644861
 !i10b 1
-Z8 !s108 1760641006.000000
+Z8 !s108 1760644861.000000
 Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/ff_d.vhd|
-!s107 /home/lucas/cl-elevador/src/ff_d.vhd|
+Z10 !s107 /home/lucas/cl-elevador/src/ff_d.vhd|
 !i113 1
-Z10 o-work work -2002 -explicit
-Z11 tExplicit 1 CvgOpt 0
+Z11 o-work work -2002 -explicit
+Z12 tExplicit 1 CvgOpt 0
 Aarch
 R1
 R2
-DEx4 work 4 ff_d 0 22 h]>IT]TIFL<i<UczF=fE61
-!i122 0
-l13
-L12 9
-VQRJ9EkCWNGOc`lN=XRnS62
-!s100 iLET`cHDVU4_XW]bh5C482
+DEx4 work 4 ff_d 0 22 =@N9<Ulhn>IEc71EQC6G00
+!i122 18
+l15
+L14 13
+VKPJkVI=@3dS@Q4<fBc4Z81
+!s100 oUT9IeJGN7Dk;NfGj9BE]1
 R6
 32
 R7
 !i10b 1
 R8
 R9
-Z12 !s107 /home/lucas/cl-elevador/src/ff_d.vhd|
-!i113 1
 R10
+!i113 1
 R11
+R12
+Ell_el
+w1760723178
+Z13 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+Z14 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+R1
+R2
+!i122 20
+R3
+Z15 8/home/lucas/cl-elevador/src/reg.vhd
+Z16 F/home/lucas/cl-elevador/src/reg.vhd
+l0
+L5 1
+V=>ON[i]Bm5]3@kLQ6FLWJ2
+!s100 _nZ_?LSKZdCFHi=Yh_ccm2
+R6
+32
+!s110 1760723210
+!i10b 1
+!s108 1760723210.000000
+Z17 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/reg.vhd|
+Z18 !s107 /home/lucas/cl-elevador/src/reg.vhd|
+!i113 1
+R11
+R12
+Ereg
+Z19 w1760723224
+R13
+R14
+R1
+R2
+!i122 21
+R3
+R15
+R16
+l0
+L5 1
+VS3<[IYKSj?53o7SdUW^DB0
+!s100 FfHmmm2Z9hKUgn`TGBM2d3
+R6
+32
+Z20 !s110 1760723225
+!i10b 1
+Z21 !s108 1760723225.000000
+R17
+R18
+!i113 1
+R11
+R12
+Aarch
+R13
+R14
+R1
+R2
+DEx4 work 3 reg 0 22 S3<[IYKSj?53o7SdUW^DB0
+!i122 21
+l17
+L14 15
+VSC3:Oi8ALi=34=3F1NM:02
+!s100 BDSU`Cd5kiK<SNgBdzWz=2
+R6
+32
+R20
+!i10b 1
+R21
+R17
+R18
+!i113 1
+R11
+R12
