@@ -21,15 +21,17 @@ architecture arch of udc is
   signal prox_q : std_logic_vector(w-1 downto 0) 
     := (others => '0'); -- Quero que inicialize em 0^w
 begin
-  prox_q <= -- Esse cara é estrutural (expande pra muxeses) 
-           -- Parado
-            q when mov="00"
-           -- Subindo (Se não tá no topo)
-            else q+1 when (mov="01" and q < (2**w - 1))
-           -- Decendo (Se não tá no primeiro)
-            else q-1 when (mov="10" and q > 0);
+  -- Esse cara é estrutural (expande pra muxeses, somadores e comparadores) 
+  prox_q 
+    <= q when mov="00"
+        -- Subindo (Se não tá no topo)
+       else q+1 when (mov="01" and q < (2**w - 1))
+        -- Decendo (Se não tá no térreo)
+       else q-1 when (mov="10" and q > 0);
+     
 
-  process(clk) -- Esse cara é comportamental
+  -- Esse cara é comportamental
+  process(clk)
   begin
     if (clk'event and clk='1') then
       q <= prox_q;
