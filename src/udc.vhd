@@ -18,7 +18,7 @@ entity udc is
     -- é a diferença. A conversa no stack exchange passou
     -- voando por cima da minha cabeça.
     q     : buffer  std_logic_vector(w-1 downto 0));
-end reg;
+end udc;
 
 -- TODO: Deletar esses comentários.
 -- Eu não sei se eu entendi legal como que o professor
@@ -32,9 +32,9 @@ architecture arch of udc is
 begin
   -- Esse cara é estrutural (expande pra muxeses, somadores e comparadores) 
   prox_q <= 
-    q when up=dn; -- 00 (que é o parado) ou 11 (que não significa nada)
+    q when up=dn -- 00 (que é o parado) ou 11 (que não significa nada)
     else q+1 when (up='1' and q < (2**w - 1))
-    else q-1 when (dn='1' and q > 0)
+    else q-1 when (dn='1' and q > 0);
 
   -- Esse cara é comportamental
   process(clk)
