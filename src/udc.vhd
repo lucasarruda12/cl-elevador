@@ -8,9 +8,8 @@ entity udc is
   port (
     clk   : in  std_logic;
 
-    -- é melhor fazer isso e ter um vector de 2 bits
-    -- ou ter um bit `ena` e um bit `e` (de entrada)
-    mov   : in  std_logic_vector(1 downto 0);
+    up   : in  std_logic;
+    dn   : in  std_logic;
 
     -- Eu vi umas conversas no stackexchange sobre não
     -- usar buffer (https://electronics.stackexchange.com/questions/123279/vhdl-buffer-vs-out).
@@ -33,11 +32,9 @@ architecture arch of udc is
 begin
   -- Esse cara é estrutural (expande pra muxeses, somadores e comparadores) 
   prox_q <= 
-    -- Subindo (Se não tá no topo)
-    q+1 when (mov="01" and q < (2**w - 1))
-    -- Decendo (Se não tá no térreo)
-    else q-1 when (mov="10" and q > 0)
-    else q;
+    q when up=dn; -- 00 (que é o parado) ou 11 (que não significa nada)
+    else q+1 when (up='1' and q < (2**w - 1))
+    else q-1 when (dn='1' and q > 0)
 
   -- Esse cara é comportamental
   process(clk)
