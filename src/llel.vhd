@@ -1,0 +1,52 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity llel is
+  generic (w : natural := 5);
+  port (
+    clk : in  std_logic;
+    op  : in  std_logic;
+    cl  : in  std_logic;
+    up  : in  std_logic;
+    dn  : in  std_logic;
+    dr  : out std_logic;
+    fr  : out std_logic_vector(w-1 downto 0)
+  );
+end llel;
+
+architecture arch of llel is
+  component door
+    port (
+      clk : in  std_logic;
+      op  : in  std_logic;
+      cl  : in  std_logic;
+      q   : out std_logic
+    );
+  end component;
+
+  component udc
+    generic (w : natural := 5);
+    port (
+      clk : in  std_logic;
+      up  : in  std_logic;
+      dn  : in  std_logic;
+      q   : out std_logic_vector(w-1 downto 0)
+    );
+  end component;
+
+  signal dr_int : std_logic;
+  signal up_int : std_logic;
+  signal dn_int : std_logic;
+
+begin
+  door_inst : door
+    port map (clk, op, cl, dr_int);
+
+  up_int <= up and not dr_int;
+  dn_int <= dn and not dr_int;
+  dr <= dr_int;
+
+  udc_inst : udc
+    generic map (w => w)
+    port map (clk, up_int, dn, fr);
+end arch;
