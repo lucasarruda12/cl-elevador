@@ -1,0 +1,166 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dC:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src
+Edoor
+Z1 w1761157588
+Z2 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z3 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+R0
+Z4 8door.vhd
+Z5 Fdoor.vhd
+l0
+L4
+VVdo[^3lRdA_h]zzL@D]O]1
+!s100 :BTG^G9k?;22zNAnH^aDa2
+Z6 OV;C;10.5b;63
+32
+Z7 !s110 1761189029
+!i10b 1
+Z8 !s108 1761189029.000000
+Z9 !s90 -reportprogress|300|door.vhd|
+Z10 !s107 door.vhd|
+!i113 1
+Z11 tExplicit 1 CvgOpt 0
+Aarch
+R2
+R3
+DEx4 work 4 door 0 22 Vdo[^3lRdA_h]zzL@D]O]1
+l15
+L12
+VF`>KTc2?Gjji1RMmYQBTX0
+!s100 FzlYD8e4`T=gN?72SKf^z1
+R6
+32
+R7
+!i10b 1
+R8
+R9
+R10
+!i113 1
+R11
+Ein_controller
+Z12 w1761178808
+Z13 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+Z14 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+R2
+R3
+R0
+Z15 8in_controller.vhd
+Z16 Fin_controller.vhd
+l0
+L6
+VzFK[BCXgUNd3LiY?T?fEo3
+!s100 3<ZDRUET0cz1W0;kNPCz@3
+R6
+32
+Z17 !s110 1761189050
+!i10b 1
+Z18 !s108 1761189050.000000
+Z19 !s90 -reportprogress|300|in_controller.vhd|
+Z20 !s107 in_controller.vhd|
+!i113 1
+R11
+Aarch
+R13
+R14
+R2
+R3
+DEx4 work 13 in_controller 0 22 zFK[BCXgUNd3LiY?T?fEo3
+l59
+L18
+VB;2:`jX?lPzL`Ee9=TN_o3
+!s100 nMM6?z@RES8MlRh<lzAOQ0
+R6
+32
+R17
+!i10b 1
+R18
+R19
+R20
+!i113 1
+R11
+Ellel
+Z21 w1761178615
+R2
+R3
+R0
+Z22 8llel.vhd
+Z23 Fllel.vhd
+l0
+L4
+V2DR_7`Kl5ig8PC2WaLKSK3
+!s100 ^:4aXBIXk]>?=JOkLUBM?1
+R6
+32
+Z24 !s110 1761189042
+!i10b 1
+Z25 !s108 1761189042.000000
+Z26 !s90 -reportprogress|300|llel.vhd|
+Z27 !s107 llel.vhd|
+!i113 1
+R11
+Aarch
+R2
+R3
+DEx4 work 4 llel 0 22 2DR_7`Kl5ig8PC2WaLKSK3
+l41
+L17
+VFcGQ`?>6J25F5nXY7JU_53
+!s100 nneY;5ckF59KDJ`XLQ2iB3
+R6
+32
+R24
+!i10b 1
+R25
+R26
+R27
+!i113 1
+R11
+Eudc
+R1
+R13
+R14
+R2
+R3
+R0
+Z28 8udc.vhd
+Z29 Fudc.vhd
+l0
+L6
+V^gKbA=fbTjDJ_^TdXH9YU3
+!s100 S@o5PdTibfk3AUV=6]_XZ1
+R6
+32
+Z30 !s110 1761189035
+!i10b 1
+Z31 !s108 1761189035.000000
+Z32 !s90 -reportprogress|300|udc.vhd|
+Z33 !s107 udc.vhd|
+!i113 1
+R11
+Aarch
+R13
+R14
+R2
+R3
+DEx4 work 3 udc 0 22 ^gKbA=fbTjDJ_^TdXH9YU3
+l18
+L15
+VTkR?OBo7o0aVhZzY8e1KB3
+!s100 OD8TW2C^9^W]NK8>j81=J1
+R6
+32
+R30
+!i10b 1
+R31
+R32
+R33
+!i113 1
+R11
