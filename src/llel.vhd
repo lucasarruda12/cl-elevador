@@ -47,6 +47,11 @@ begin
   dr <= dr_int;
 
   udc_inst : udc
-    generic map (w => w)
-    port map (clk, up_int, dn, fr);
+      generic map (w => w)
+      port map (
+          clk => clk,
+          up => up_int,
+          dn => dn_int, --mudei de dn para dn_int
+          q => fr
+      );
 end arch;

@@ -10,36 +10,34 @@ z2
 cModel Technology
 d/home/lucas
 Edoor
-Z0 w1760804473
+Z0 w1761157588
 Z1 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
-Z2 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
-!i122 47
-Z3 d/home/lucas/cl-elevador
-Z4 8/home/lucas/cl-elevador/src/door.vhd
-Z5 F/home/lucas/cl-elevador/src/door.vhd
+Z2 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+Z3 dC:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador
+Z4 8C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/door.vhd
+Z5 FC:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/door.vhd
 l0
-L4 1
-VlUFG5?ee4Ylib<6dO`mjX0
-!s100 V67QM4S8B2IKW^5h^hW>J1
-Z6 OV;C;2020.1;71
+L4
+VgNkbUglACo:o5k<Gjlzc13
+!s100 :BTG^G9k?;22zNAnH^aDa2
+Z6 OV;C;10.5b;63
 32
-Z7 !s110 1760804477
+Z7 !s110 1761178836
 !i10b 1
-Z8 !s108 1760804477.000000
-Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/door.vhd|
-Z10 !s107 /home/lucas/cl-elevador/src/door.vhd|
+Z8 !s108 1761178836.000000
+Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/door.vhd|
+Z10 !s107 C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/door.vhd|
 !i113 1
 Z11 o-work work -2002 -explicit
 Z12 tExplicit 1 CvgOpt 0
 Aarch
 R1
 R2
-DEx4 work 4 door 0 22 lUFG5?ee4Ylib<6dO`mjX0
-!i122 47
-l14
-L12 15
-V<HPoTbcI[7`_LiAdnRH4b0
-!s100 Po1TIPH:CZ=fn=^E2`jz43
+DEx4 work 4 door 0 22 gNkbUglACo:o5k<Gjlzc13
+l15
+L12
+VKj1YHoOK<2@20VNlZGVoM3
+!s100 FzlYD8e4`T=gN?72SKf^z1
 R6
 32
 R7
@@ -53,110 +51,235 @@ R12
 Eff_d
 Z13 w1760643296
 R1
-R2
+Z14 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
 !i122 40
-R3
-Z14 8/home/lucas/cl-elevador/src/ff_d.vhd
-Z15 F/home/lucas/cl-elevador/src/ff_d.vhd
+Z15 d/home/lucas/cl-elevador
+Z16 8/home/lucas/cl-elevador/src/ff_d.vhd
+Z17 F/home/lucas/cl-elevador/src/ff_d.vhd
 l0
 L4 1
 V=@N9<Ulhn>IEc71EQC6G00
 !s100 0Zj?oLSYU@1]XT<Ulgi1`3
-R6
+Z18 OV;C;2020.1;71
 32
-Z16 !s110 1760733323
+Z19 !s110 1760733323
 !i10b 1
-Z17 !s108 1760733323.000000
-Z18 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/ff_d.vhd|
-Z19 !s107 /home/lucas/cl-elevador/src/ff_d.vhd|
+Z20 !s108 1760733323.000000
+Z21 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/ff_d.vhd|
+Z22 !s107 /home/lucas/cl-elevador/src/ff_d.vhd|
 !i113 1
 R11
 R12
 Aarch
 R1
-R2
+R14
 DEx4 work 4 ff_d 0 22 =@N9<Ulhn>IEc71EQC6G00
 !i122 40
 l15
 L14 13
 VKPJkVI=@3dS@Q4<fBc4Z81
 !s100 oUT9IeJGN7Dk;NfGj9BE]1
+R18
+32
+R19
+!i10b 1
+R20
+R21
+R22
+!i113 1
+R11
+R12
+Ein_controller
+Z23 w1761178808
+Z24 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+Z25 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+R1
+R2
+R3
+Z26 8C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/in_controller.vhd
+Z27 FC:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/in_controller.vhd
+l0
+L6
+VDaEAh8DCVS6boEUjVl;F<3
+!s100 3<ZDRUET0cz1W0;kNPCz@3
 R6
 32
-R16
+R7
 !i10b 1
-R17
-R18
-R19
+R8
+Z28 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/in_controller.vhd|
+Z29 !s107 C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/in_controller.vhd|
+!i113 1
+R11
+R12
+Aarch
+R24
+R25
+R1
+R2
+DEx4 work 13 in_controller 0 22 DaEAh8DCVS6boEUjVl;F<3
+l59
+L18
+V9CnHIUTTJj5EHS8fd=XQ:0
+!s100 nMM6?z@RES8MlRh<lzAOQ0
+R6
+32
+R7
+!i10b 1
+R8
+R28
+R29
 !i113 1
 R11
 R12
 Ell_el
 w1760723178
-Z20 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
-Z21 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+R24
+R25
 R1
-R2
+R14
 !i122 20
-R3
-Z22 8/home/lucas/cl-elevador/src/reg.vhd
-Z23 F/home/lucas/cl-elevador/src/reg.vhd
+R15
+Z30 8/home/lucas/cl-elevador/src/reg.vhd
+Z31 F/home/lucas/cl-elevador/src/reg.vhd
 l0
 L5 1
 V=>ON[i]Bm5]3@kLQ6FLWJ2
 !s100 _nZ_?LSKZdCFHi=Yh_ccm2
-R6
+R18
 32
 !s110 1760723210
 !i10b 1
 !s108 1760723210.000000
-Z24 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/reg.vhd|
-Z25 !s107 /home/lucas/cl-elevador/src/reg.vhd|
+Z32 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|/home/lucas/cl-elevador/src/reg.vhd|
+Z33 !s107 /home/lucas/cl-elevador/src/reg.vhd|
 !i113 1
 R11
 R12
-Ereg
-Z26 w1760733317
-R20
-R21
+Ellel
+Z34 w1761178615
 R1
 R2
-!i122 41
 R3
-R22
-R23
+Z35 8C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/llel.vhd
+Z36 FC:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/llel.vhd
 l0
-L5 1
-V<YB<HJZh=KE0j@B5U5BX71
-!s100 g1l4]l:R_4?:>W>IRS:Mi2
+L4
+VWVlmZOfWmXg7aR7oA6oSo0
+!s100 ^:4aXBIXk]>?=JOkLUBM?1
 R6
 32
-R16
+R7
 !i10b 1
-R17
-R24
-R25
+R8
+Z37 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/llel.vhd|
+Z38 !s107 C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/llel.vhd|
 !i113 1
 R11
 R12
 Aarch
-R20
-R21
 R1
 R2
+DEx4 work 4 llel 0 22 WVlmZOfWmXg7aR7oA6oSo0
+l41
+L17
+Vz9e0CQ0aZTCNNTf[o<eSz0
+!s100 nneY;5ckF59KDJ`XLQ2iB3
+R6
+32
+R7
+!i10b 1
+R8
+R37
+R38
+!i113 1
+R11
+R12
+Ereg
+Z39 w1760733317
+R24
+R25
+R1
+R14
+!i122 41
+R15
+R30
+R31
+l0
+L5 1
+V<YB<HJZh=KE0j@B5U5BX71
+!s100 g1l4]l:R_4?:>W>IRS:Mi2
+R18
+32
+R19
+!i10b 1
+R20
+R32
+R33
+!i113 1
+R11
+R12
+Aarch
+R24
+R25
+R1
+R14
 DEx4 work 3 reg 0 22 <YB<HJZh=KE0j@B5U5BX71
 !i122 41
 l22
 L19 19
 V3QOJcPBf4l2Hj[n3OMBc93
 !s100 M?`:LZF;;1[=P4?R;NeW42
-R6
+R18
 32
-R16
+R19
 !i10b 1
-R17
+R20
+R32
+R33
+!i113 1
+R11
+R12
+Eudc
+R0
 R24
 R25
+R1
+R2
+R3
+Z40 8C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/udc.vhd
+Z41 FC:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/udc.vhd
+l0
+L6
+V_ld70_KTo?kMdJ><;Ncz@0
+!s100 S@o5PdTibfk3AUV=6]_XZ1
+R6
+32
+R7
+!i10b 1
+R8
+Z42 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/udc.vhd|
+Z43 !s107 C:/Users/andre/Downloads/cl-elevador-20251022T151434Z-1-001/cl-elevador/src/udc.vhd|
+!i113 1
+R11
+R12
+Aarch
+R24
+R25
+R1
+R2
+Z44 DEx4 work 3 udc 0 22 _ld70_KTo?kMdJ><;Ncz@0
+l18
+L15
+Z45 V`M3OZjPH]PKHzne@W1F^R2
+Z46 !s100 OD8TW2C^9^W]NK8>j81=J1
+R6
+32
+R7
+!i10b 1
+R8
+R42
+R43
 !i113 1
 R11
 R12
