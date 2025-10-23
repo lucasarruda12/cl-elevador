@@ -2,17 +2,17 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_unsigned.all;
 
--- Up-Down Counter (udc).
-entity udc is
+-- Up-Down Counter (move_counter).
+entity move_counter is
   generic (w : natural := 5);
   port (
     clk : in  std_logic;
     up  : in  std_logic;
     dn  : in  std_logic;
     q   : out  std_logic_vector(w-1 downto 0));
-end udc;
+end move_counter;
 
-architecture arch of udc is
+architecture arch of move_counter is
   signal q_int : std_logic_vector(w-1 downto 0) := (others => '0');
   signal prox_q : std_logic_vector(w-1 downto 0);
 begin

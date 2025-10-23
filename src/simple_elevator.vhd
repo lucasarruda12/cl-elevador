@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 
-entity llel is
+entity simple_elevator is
   generic (w : natural := 5);
   port (
     clk : in  std_logic;
@@ -12,9 +12,9 @@ entity llel is
     dr  : out std_logic;
     fr  : out std_logic_vector(w-1 downto 0)
   );
-end llel;
+end simple_elevator;
 
-architecture arch of llel is
+architecture arch of simple_elevator is
   component door
     port (
       clk : in  std_logic;
@@ -24,7 +24,7 @@ architecture arch of llel is
     );
   end component;
 
-  component udc
+  component move_counter
     generic (w : natural := 5);
     port (
       clk : in  std_logic;
@@ -46,7 +46,7 @@ begin
   dn_int <= dn and not dr_int;
   dr <= dr_int;
 
-  udc_inst : udc
+  move_counter_inst : move_counter
       generic map (w => w)
       port map (
           clk => clk,

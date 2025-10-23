@@ -1,8 +1,8 @@
 # Na janela Transcript do ModelSim, digite:
 vlib work
 vcom door.vhd
-vcom udc.vhd
-vcom llel.vhd
+vcom move_counter.vhd
+vcom simple_elevator.vhd
 vcom in_controller.vhd
 
 vsim work.in_controller

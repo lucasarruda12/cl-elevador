@@ -28,7 +28,7 @@ architecture arch of in_controller is
     signal prev_int_floor_request : std_logic_vector(31 downto 0) := (others => '0');
     signal prev_ext_floor_request : std_logic_vector(31 downto 0) := (others => '0');
 
-    component llel is
+    component simple_elevator is
         generic (w : natural := 5);
         port (
             clk : in  std_logic;
@@ -43,7 +43,7 @@ architecture arch of in_controller is
 
 begin
 
-    llel_inst: llel
+    simple_elevator_inst: simple_elevator
         generic map(w => w)
         port map (
             clk => clk,
@@ -74,7 +74,7 @@ begin
     begin
         if rising_edge(clk) then
             currentFloor := CONV_INTEGER(unsigned(fr_int)); --tem algo estranho aqui, o current floor esta lendo ou 1 andar a mais ou 1 andar a menos doq o normal
-            -- tlvz o fr_int não esta sendo inicializado como 0 por padrão no llel/udc?
+            -- tlvz o fr_int não esta sendo inicializado como 0 por padrão nsimple_elevatoremove_counterdc?
             
             -- Detecta novos pedidos (bits que mudaram de 0 para 1)
             new_int_requests := int_floor_request and not prev_int_floor_request;
