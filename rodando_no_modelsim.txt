@@ -19,26 +19,24 @@ add wave -radix binary /in_controller/op_int
 add wave -radix binary /in_controller/cl_int
 add wave -radix binary /in_controller/dr_int
 add wave -radix unsigned /in_controller/fr_int
-add wave -radix binary /in_controller/debug_moving
-add wave -radix binary /in_controller/debug_at_destination
 add wave -radix integer /in_controller/calls_count
 
 # Cria um clock de 100ns de período (50ns alto, 50ns baixo)
 force clk 0 0ns, 1 50ns -repeat 100ns
 
 # Inicializa as entradas em zero
-force int_floor_request 00000
-force ext_floor_request 00000
+force int_floor_request 00000000000000000000000000000000
+force ext_floor_request 00000000000000000000000000000000
 
 # Roda para inicializar
 run 200ns
 
 # Ativa o pedido
-force int_floor_request 00011
+force int_floor_request 00000000000000000000000000000100
 run 100ns
 
 # IMPORTANTE: Zera o pedido (senão fica re-adicionando)
-force int_floor_request 00000
+force int_floor_request 00000000000000000000000000000000
 
 # Deixa o elevador trabalhar
 run 2000ns

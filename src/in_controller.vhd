@@ -7,8 +7,8 @@ entity in_controller is
   generic (w : natural := 5);
   port (
     clk               : in std_logic;
-    int_floor_request : in std_logic_vector(w-1 downto 0);
-    ext_floor_request : in std_logic_vector(w-1 downto 0);
+    int_floor_request : in std_logic_vector(31 downto 0);
+    ext_floor_request : in std_logic_vector(31 downto 0);
     fr                : out std_logic_vector(w-1 downto 0);
     intension         : out std_logic_vector(1 downto 0);
     request_vector    : out std_logic_vector(31 downto 0)
@@ -25,9 +25,8 @@ architecture arch of in_controller is
     signal intension_int : std_logic_vector(1 downto 0) := "00";
     signal request_vector_int : std_logic_vector(31 downto 0) := (others => '0');
     signal calls_count : integer := 0;
-    signal prev_int_floor_request : std_logic_vector(w-1 downto 0) := (others => '0');
-    signal prev_ext_floor_request : std_logic_vector(w-1 downto 0) := (others => '0');
-    signal prev_request_vector : std_logic_vector(31 downto 0) := (others => '0');
+    signal prev_int_floor_request : std_logic_vector(31 downto 0) := (others => '0');
+    signal prev_ext_floor_request : std_logic_vector(31 downto 0) := (others => '0');
 
     component llel is
         generic (w : natural := 5);
@@ -41,15 +40,6 @@ architecture arch of in_controller is
             fr  : out std_logic_vector(w-1 downto 0)
         );
     end component;
-
-    function to_one_hot(idx : integer; size : integer) return std_logic_vector is
-        variable result : std_logic_vector(size-1 downto 0) := (others => '0');
-    begin
-        if idx >= 0 and idx < size then
-            result(idx) := '1';
-        end if;
-        return result;
-    end function;
 
 begin
 
@@ -72,34 +62,26 @@ begin
     process(clk)
         variable currentFloor : integer;
         variable combinedRequest : std_logic_vector(31 downto 0);
-        variable temp_int_floor : integer;
-        variable temp_ext_floor : integer;
+        variable new_int_requests : std_logic_vector(31 downto 0);
+        variable new_ext_requests : std_logic_vector(31 downto 0);
         variable new_calls_count : integer;
+        variable added_calls : integer;
         variable has_request_above : boolean;
         variable has_request_below : boolean;
         variable next_intension : std_logic_vector(1 downto 0);
         variable at_destination : boolean;
-        variable new_int_request : boolean;
-        variable new_ext_request : boolean;
         variable need_full_scan : boolean;
     begin
         if rising_edge(clk) then
-            currentFloor := CONV_INTEGER(unsigned(fr_int));
-            temp_int_floor := CONV_INTEGER(unsigned(int_floor_request));
-            temp_ext_floor := CONV_INTEGER(unsigned(ext_floor_request));
-
-            -- Detecta novos pedidos (transição de 0 para 1)
-            new_int_request := (int_floor_request /= prev_int_floor_request) and (int_floor_request /= (int_floor_request'range => '0'));
-            new_ext_request := (ext_floor_request /= prev_ext_floor_request) and (ext_floor_request /= (ext_floor_request'range => '0'));
+            currentFloor := CONV_INTEGER(unsigned(fr_int)); --tem algo estranho aqui, o current floor esta lendo ou 1 andar a mais ou 1 andar a menos doq o normal
+            -- tlvz o fr_int não esta sendo inicializado como 0 por padrão no llel/udc?
+            
+            -- Detecta novos pedidos (bits que mudaram de 0 para 1)
+            new_int_requests := int_floor_request and not prev_int_floor_request;
+            new_ext_requests := ext_floor_request and not prev_ext_floor_request;
 
             -- Adiciona novos pedidos ao vetor existente
-            combinedRequest := request_vector_int;
-            if new_int_request then
-                combinedRequest := combinedRequest or to_one_hot(temp_int_floor, 32);
-            end if;
-            if new_ext_request then
-                combinedRequest := combinedRequest or to_one_hot(temp_ext_floor, 32);
-            end if;
+            combinedRequest := request_vector_int or new_int_requests or new_ext_requests;
 
             -- Verifica se chegou no destino
             at_destination := (request_vector_int(currentFloor) = '1');
@@ -119,22 +101,21 @@ begin
                 end if;
             end if;
             
-            -- Incrementa se novo pedido está na direção atual
-            if new_int_request then
-                if intension_int = "10" and temp_int_floor > currentFloor then
-                    new_calls_count := new_calls_count + 1;
-                elsif intension_int = "01" and temp_int_floor < currentFloor then
-                    new_calls_count := new_calls_count + 1;
-                end if;
-            end if;
+            -- Conta e incrementa novos pedidos na direção atual
+            added_calls := 0;
             
-            if new_ext_request then
-                if intension_int = "10" and temp_ext_floor > currentFloor then
-                    new_calls_count := new_calls_count + 1;
-                elsif intension_int = "01" and temp_ext_floor < currentFloor then
-                    new_calls_count := new_calls_count + 1;
+            -- Conta novos pedidos internos na direção atual
+            for i in 0 to 31 loop
+                if (new_int_requests(i) or new_ext_requests(i)) = '1' then
+                    if intension_int = "10" and i > currentFloor then
+                        added_calls := added_calls + 1;
+                    elsif intension_int = "01" and i < currentFloor then
+                        added_calls := added_calls + 1;
+                    end if;
                 end if;
-            end if;
+            end loop;
+            
+            new_calls_count := new_calls_count + added_calls;
 
             -- Determina se precisa fazer varredura completa
             need_full_scan := (intension_int = "00") or (new_calls_count = 0);
@@ -234,7 +215,6 @@ begin
             request_vector_int <= combinedRequest;
             prev_int_floor_request <= int_floor_request;
             prev_ext_floor_request <= ext_floor_request;
-            prev_request_vector <= combinedRequest;
             calls_count <= new_calls_count;
 
             -- Controle de porta e movimento
