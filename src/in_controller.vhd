@@ -27,12 +27,7 @@ architecture arch of in_controller is
     signal calls_count : integer := 0;
     signal prev_int_floor_request : std_logic_vector(w-1 downto 0) := (others => '0');
     signal prev_ext_floor_request : std_logic_vector(w-1 downto 0) := (others => '0');
-    signal prev_dr_int : std_logic := '0';
-    
-    -- Sinais de debug
-    signal debug_at_destination : std_logic := '0';
-    signal debug_moving : std_logic := '0';
-    signal debug_closing_door : std_logic := '0';
+    signal prev_request_vector : std_logic_vector(31 downto 0) := (others => '0');
 
     component llel is
         generic (w : natural := 5);
@@ -79,13 +74,14 @@ begin
         variable combinedRequest : std_logic_vector(31 downto 0);
         variable temp_int_floor : integer;
         variable temp_ext_floor : integer;
-        variable temp_calls_count : integer;
+        variable new_calls_count : integer;
         variable has_request_above : boolean;
         variable has_request_below : boolean;
         variable next_intension : std_logic_vector(1 downto 0);
         variable at_destination : boolean;
         variable new_int_request : boolean;
         variable new_ext_request : boolean;
+        variable need_full_scan : boolean;
     begin
         if rising_edge(clk) then
             currentFloor := CONV_INTEGER(unsigned(fr_int));
@@ -96,7 +92,7 @@ begin
             new_int_request := (int_floor_request /= prev_int_floor_request) and (int_floor_request /= (int_floor_request'range => '0'));
             new_ext_request := (ext_floor_request /= prev_ext_floor_request) and (ext_floor_request /= (ext_floor_request'range => '0'));
 
-            -- Adiciona novos pedidos ao vetor existente (apenas se forem novos)
+            -- Adiciona novos pedidos ao vetor existente
             combinedRequest := request_vector_int;
             if new_int_request then
                 combinedRequest := combinedRequest or to_one_hot(temp_int_floor, 32);
@@ -105,12 +101,7 @@ begin
                 combinedRequest := combinedRequest or to_one_hot(temp_ext_floor, 32);
             end if;
 
-            -- Atualiza histórico de pedidos
-            prev_int_floor_request <= int_floor_request;
-            prev_ext_floor_request <= ext_floor_request;
-            prev_dr_int <= dr_int;
-
-            -- Verifica se chegou no destino (havia um pedido no andar atual)
+            -- Verifica se chegou no destino
             at_destination := (request_vector_int(currentFloor) = '1');
 
             -- Se chegou no destino, apaga o bit
@@ -118,93 +109,141 @@ begin
                 combinedRequest(currentFloor) := '0';
             end if;
 
-            -- Atualiza o vetor de requisições
-            request_vector_int <= combinedRequest;
-
-            -- Verifica se há chamadas acima e abaixo
-            has_request_above := false;
-            has_request_below := false;
-            temp_calls_count := 0;
+            -- Atualiza calls_count incrementalmente
+            new_calls_count := calls_count;
             
-            for i in currentFloor+1 to 31 loop
-                if combinedRequest(i) = '1' then
-                    has_request_above := true;
-                    exit;
+            -- Decrementa se chegou em um destino
+            if at_destination then
+                if new_calls_count > 0 then
+                    new_calls_count := new_calls_count - 1;
                 end if;
-            end loop;
+            end if;
             
-            for i in 0 to currentFloor-1 loop
-                if combinedRequest(i) = '1' then
-                    has_request_below := true;
-                    exit;
+            -- Incrementa se novo pedido está na direção atual
+            if new_int_request then
+                if intension_int = "10" and temp_int_floor > currentFloor then
+                    new_calls_count := new_calls_count + 1;
+                elsif intension_int = "01" and temp_int_floor < currentFloor then
+                    new_calls_count := new_calls_count + 1;
                 end if;
-            end loop;
+            end if;
+            
+            if new_ext_request then
+                if intension_int = "10" and temp_ext_floor > currentFloor then
+                    new_calls_count := new_calls_count + 1;
+                elsif intension_int = "01" and temp_ext_floor < currentFloor then
+                    new_calls_count := new_calls_count + 1;
+                end if;
+            end if;
 
-            -- Determina próxima intenção baseada no estado atual
+            -- Determina se precisa fazer varredura completa
+            need_full_scan := (intension_int = "00") or (new_calls_count = 0);
+            
             next_intension := intension_int;
             
-            case intension_int is
-                when "10" =>  -- Estava subindo
-                    if has_request_above then
-                        next_intension := "10";
-                        -- Conta chamadas acima
-                        for i in currentFloor+1 to 31 loop
-                            if combinedRequest(i) = '1' then
-                                temp_calls_count := temp_calls_count + 1;
-                            end if;
-                        end loop;
-                    elsif has_request_below then
-                        next_intension := "01";
-                    else
-                        next_intension := "00";
-                    end if;
-                    
-                when "01" =>  -- Estava descendo
-                    if has_request_below then
-                        next_intension := "01";
-                        -- Conta chamadas abaixo
+            if need_full_scan then
+                -- Faz varredura completa apenas quando parado ou calls_count zerou
+                has_request_above := false;
+                has_request_below := false;
+                new_calls_count := 0;
+                
+                case intension_int is
+                    when "10" =>  -- Estava subindo mas zerou
+                        -- Verifica abaixo
                         for i in 0 to currentFloor-1 loop
                             if combinedRequest(i) = '1' then
-                                temp_calls_count := temp_calls_count + 1;
+                                has_request_below := true;
+                                new_calls_count := new_calls_count + 1;
                             end if;
                         end loop;
-                    elsif has_request_above then
-                        next_intension := "10";
-                    else
-                        next_intension := "00";
-                    end if;
-                    
-                when others =>  -- Estava parado ("00")
-                    if has_request_above then
-                        next_intension := "10";
-                    elsif has_request_below then
-                        next_intension := "01";
-                    else
-                        next_intension := "00";
-                    end if;
-            end case;
+                        
+                        if has_request_below then
+                            next_intension := "01";
+                        else
+                            next_intension := "00";
+                        end if;
+                        
+                    when "01" =>  -- Estava descendo mas zerou
+                        -- Verifica acima
+                        for i in currentFloor+1 to 31 loop
+                            if combinedRequest(i) = '1' then
+                                has_request_above := true;
+                                new_calls_count := new_calls_count + 1;
+                            end if;
+                        end loop;
+                        
+                        if has_request_above then
+                            next_intension := "10";
+                        else
+                            next_intension := "00";
+                        end if;
+                        
+                    when others =>  -- Está parado
+                        -- Verifica ambas direções
+                        for i in currentFloor+1 to 31 loop
+                            if combinedRequest(i) = '1' then
+                                has_request_above := true;
+                                exit;
+                            end if;
+                        end loop;
+                        
+                        for i in 0 to currentFloor-1 loop
+                            if combinedRequest(i) = '1' then
+                                has_request_below := true;
+                                exit;
+                            end if;
+                        end loop;
+                        
+                        if has_request_above then
+                            next_intension := "10";
+                            -- Conta chamadas acima
+                            new_calls_count := 0;
+                            for i in currentFloor+1 to 31 loop
+                                if combinedRequest(i) = '1' then
+                                    new_calls_count := new_calls_count + 1;
+                                end if;
+                            end loop;
+                        elsif has_request_below then
+                            next_intension := "01";
+                            -- Conta chamadas abaixo
+                            new_calls_count := 0;
+                            for i in 0 to currentFloor-1 loop
+                                if combinedRequest(i) = '1' then
+                                    new_calls_count := new_calls_count + 1;
+                                end if;
+                            end loop;
+                        else
+                            next_intension := "00";
+                            new_calls_count := 0;
+                        end if;
+                end case;
+            else
+                -- Mantém a direção atual pois ainda há chamadas
+                next_intension := intension_int;
+            end if;
 
             -- Casos especiais para andares extremos
-            if currentFloor = 0 and (has_request_above or has_request_below) then
+            if currentFloor = 0 and next_intension /= "00" then
                 next_intension := "10";
-            elsif currentFloor = 31 and (has_request_above or has_request_below) then
+            elsif currentFloor = 31 and next_intension /= "00" then
                 next_intension := "01";
             end if;
 
-            -- Atualiza intension
+            -- Atualiza sinais
             intension_int <= next_intension;
+            request_vector_int <= combinedRequest;
+            prev_int_floor_request <= int_floor_request;
+            prev_ext_floor_request <= ext_floor_request;
+            prev_request_vector <= combinedRequest;
+            calls_count <= new_calls_count;
 
             -- Controle de porta e movimento
             if at_destination then
-                -- Chegou no destino: abre porta e para
                 op_int <= '1';
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
-                debug_at_destination <= '1';
-                debug_moving <= '0';
             elsif next_intension /= "00" and dr_int = '0' then
-                -- Quer se mover E porta está fechada: ativa movimento
                 op_int <= '0';
                 cl_int <= '0';
                 
@@ -218,28 +257,17 @@ begin
                     up_int <= '0';
                     dn_int <= '0';
                 end if;
-                debug_at_destination <= '0';
-                debug_moving <= '1';
             elsif next_intension /= "00" and dr_int = '1' then
-                -- Quer se mover MAS porta está aberta: fecha porta primeiro
                 op_int <= '0';
                 cl_int <= '1';
                 up_int <= '0';
                 dn_int <= '0';
-                debug_at_destination <= '0';
-                debug_moving <= '0';
             else
-                -- Parado sem destino: mantém tudo desligado
                 op_int <= '0';
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
-                debug_at_destination <= '0';
-                debug_moving <= '0';
             end if;
-            
-            -- Atualiza signal de calls_count
-            calls_count <= temp_calls_count;
 
         end if;
     end process;
