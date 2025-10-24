@@ -10,15 +10,15 @@ vsim work.in_controller
 add wave -radix binary clk
 add wave -radix binary int_floor_request
 add wave -radix binary ext_floor_request
-add wave -radix unsigned fr
-add wave -radix binary intension
+add wave -radix unsigned current_floor
+add wave -radix binary intention
 add wave -radix binary request_vector
 add wave -radix binary /in_controller/up_int
 add wave -radix binary /in_controller/dn_int
 add wave -radix binary /in_controller/op_int
 add wave -radix binary /in_controller/cl_int
 add wave -radix binary /in_controller/dr_int
-add wave -radix unsigned /in_controller/fr_int
+add wave -radix unsigned /in_controller/current_floor_int
 add wave -radix integer /in_controller/calls_count
 
 # Cria um clock de 100ns de período (50ns alto, 50ns baixo)

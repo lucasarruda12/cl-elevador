@@ -1,43 +1,40 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_unsigned.all;
-use IEEE.std_logic_arith.all;
+use IEEE.numeric_std.all;
 
 entity in_controller is
   generic (w : natural := 5);
   port (
     clk               : in std_logic;
-    int_floor_request : in std_logic_vector(31 downto 0);
-    ext_floor_request : in std_logic_vector(31 downto 0);
-    fr                : out std_logic_vector(w-1 downto 0);
-    intension         : out std_logic_vector(1 downto 0);
-    request_vector    : out std_logic_vector(31 downto 0)
+    int_floor_request : in std_logic_vector(31 downto 0); --botoes internos do elevador (devemos programar ainda o teclado)
+    move_up_request   : in std_logic_vector (31 downto 0); -- pedido de subida externo (NOVO)
+    move_dn_request   : in std_logic_vector (31 downto 0); -- pedido de descida externo (NOVO)
+    current_floor     : out std_logic_vector(w-1 downto 0); -- andar atual do elevador
+    status            : out std_logic_vector(1 downto 0); -- status do elevador: 00-parado, 10-subindo, 01-descendo (NOVO)
+    intention         : out std_logic_vector(1 downto 0) -- intencao de movimento: 00-parado, 10-subindo, 01-descendo
   );
 end in_controller;
 
 architecture arch of in_controller is
-    signal op_int : std_logic := '0';
-    signal cl_int : std_logic := '0';
-    signal up_int : std_logic := '0';
-    signal dn_int : std_logic := '0';
-    signal fr_int : std_logic_vector(w-1 downto 0);
-    signal dr_int : std_logic;
-    signal intension_int : std_logic_vector(1 downto 0) := "00";
-    signal request_vector_int : std_logic_vector(31 downto 0) := (others => '0');
-    signal calls_count : integer := 0;
-    signal prev_int_floor_request : std_logic_vector(31 downto 0) := (others => '0');
-    signal prev_ext_floor_request : std_logic_vector(31 downto 0) := (others => '0');
+    signal op_int            : std_logic := '0';
+    signal cl_int            : std_logic := '0';
+    signal up_int            : std_logic := '0';
+    signal dn_int            : std_logic := '0';
+    signal current_floor_int : std_logic_vector(w-1 downto 0);
+    signal dr_int            : std_logic;
+    signal intention_int     : std_logic_vector(1 downto 0) := "00";
 
     component simple_elevator is
         generic (w : natural := 5);
         port (
-            clk : in  std_logic;
-            op  : in  std_logic;
-            cl  : in  std_logic;
-            up  : in  std_logic;
-            dn  : in  std_logic;
-            dr  : out std_logic;
-            fr  : out std_logic_vector(w-1 downto 0)
+            clk            : in  std_logic;
+            op             : in  std_logic; -- open door
+            cl             : in  std_logic; -- close door
+            up             : in  std_logic; -- move up
+            dn             : in  std_logic; -- move down
+            dr             : out std_logic; -- porta esta aberta
+            current_floor  : out std_logic_vector(w-1 downto 0)
         );
     end component;
 
@@ -46,210 +43,123 @@ begin
     simple_elevator_inst: simple_elevator
         generic map(w => w)
         port map (
-            clk => clk,
-            op  => op_int,
-            cl  => cl_int,
-            up  => up_int,
-            dn  => dn_int,
-            dr  => dr_int,
-            fr  => fr_int
+            clk            => clk,
+            op             => op_int,
+            cl             => cl_int,
+            up             => up_int,
+            dn             => dn_int,
+            dr             => dr_int,
+            current_floor  => current_floor
         );
 
-    fr <= fr_int;
-    intension <= intension_int;
-    request_vector <= request_vector_int;
+    intention <= intention_int;
 
     process(clk)
-        variable currentFloor : integer;
-        variable combinedRequest : std_logic_vector(31 downto 0);
-        variable new_int_requests : std_logic_vector(31 downto 0);
-        variable new_ext_requests : std_logic_vector(31 downto 0);
-        variable new_calls_count : integer;
-        variable added_calls : integer;
-        variable has_request_above : boolean;
-        variable has_request_below : boolean;
-        variable next_intension : std_logic_vector(1 downto 0);
-        variable at_destination : boolean;
-        variable need_full_scan : boolean;
+        variable current_floor_int   : integer;
+        variable added_calls         : integer;
+        variable at_destination      : boolean;
+        variable status_int          : boolean;
+        variable call_exists         : boolean;
+        variable left_floors         : std_logic_vector(31 downto 0);
+        variable move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
+        variable move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
     begin
         if rising_edge(clk) then
-            currentFloor := CONV_INTEGER(unsigned(fr_int)); --tem algo estranho aqui, o current floor esta lendo ou 1 andar a mais ou 1 andar a menos doq o normal
-            -- tlvz o fr_int não esta sendo inicializado como 0 por padrão nsimple_elevatoremove_counterdc?
-            
-            -- Detecta novos pedidos (bits que mudaram de 0 para 1)
-            new_int_requests := int_floor_request and not prev_int_floor_request;
-            new_ext_requests := ext_floor_request and not prev_ext_floor_request;
+            current_floor_int := CONV_INTEGER(current_floor); --tem algo estranho aqui, o current floor esta lendo ou 1 andar a mais ou 1 andar a menos doq o normal
+            -- tlvz o current_floor_int não esta sendo inicializado como 0 por padrão nsimple_elevatoremove_counterdc?
 
-            -- Adiciona novos pedidos ao vetor existente
-            combinedRequest := request_vector_int or new_int_requests or new_ext_requests;
+            move_up_request_int := move_up_request or move_up_request_int;
+            move_dn_request_int := move_dn_request or move_dn_request_int;
 
             -- Verifica se chegou no destino
-            at_destination := (request_vector_int(currentFloor) = '1');
-
-            -- Se chegou no destino, apaga o bit
-            if at_destination then
-                combinedRequest(currentFloor) := '0';
-            end if;
-
-            -- Atualiza calls_count incrementalmente
-            new_calls_count := calls_count;
-            
-            -- Decrementa se chegou em um destino
-            if at_destination then
-                if new_calls_count > 0 then
-                    new_calls_count := new_calls_count - 1;
-                end if;
-            end if;
-            
-            -- Conta e incrementa novos pedidos na direção atual
-            added_calls := 0;
-            
-            -- Conta novos pedidos internos na direção atual
-            for i in 0 to 31 loop
-                if (new_int_requests(i) or new_ext_requests(i)) = '1' then
-                    if intension_int = "10" and i > currentFloor then
-                        added_calls := added_calls + 1;
-                    elsif intension_int = "01" and i < currentFloor then
-                        added_calls := added_calls + 1;
-                    end if;
-                end if;
-            end loop;
-            
-            new_calls_count := new_calls_count + added_calls;
-
-            -- Determina se precisa fazer varredura completa
-            need_full_scan := (intension_int = "00") or (new_calls_count = 0);
-            
-            next_intension := intension_int;
-            
-            if need_full_scan then
-                -- Faz varredura completa apenas quando parado ou calls_count zerou
-                has_request_above := false;
-                has_request_below := false;
-                new_calls_count := 0;
-                
-                case intension_int is
-                    when "10" =>  -- Estava subindo mas zerou
-                        -- Verifica abaixo
-                        for i in 0 to currentFloor-1 loop
-                            if combinedRequest(i) = '1' then
-                                has_request_below := true;
-                                new_calls_count := new_calls_count + 1;
-                            end if;
-                        end loop;
-                        
-                        if has_request_below then
-                            next_intension := "01";
-                        else
-                            next_intension := "00";
-                        end if;
-                        
-                    when "01" =>  -- Estava descendo mas zerou
-                        -- Verifica acima
-                        for i in currentFloor+1 to 31 loop
-                            if combinedRequest(i) = '1' then
-                                has_request_above := true;
-                                new_calls_count := new_calls_count + 1;
-                            end if;
-                        end loop;
-                        
-                        if has_request_above then
-                            next_intension := "10";
-                        else
-                            next_intension := "00";
-                        end if;
-                        
-                    when others =>  -- Está parado
-                        -- Verifica ambas direções
-                        for i in currentFloor+1 to 31 loop
-                            if combinedRequest(i) = '1' then
-                                has_request_above := true;
-                                exit;
-                            end if;
-                        end loop;
-                        
-                        for i in 0 to currentFloor-1 loop
-                            if combinedRequest(i) = '1' then
-                                has_request_below := true;
-                                exit;
-                            end if;
-                        end loop;
-                        
-                        if has_request_above then
-                            next_intension := "10";
-                            -- Conta chamadas acima
-                            new_calls_count := 0;
-                            for i in currentFloor+1 to 31 loop
-                                if combinedRequest(i) = '1' then
-                                    new_calls_count := new_calls_count + 1;
-                                end if;
-                            end loop;
-                        elsif has_request_below then
-                            next_intension := "01";
-                            -- Conta chamadas abaixo
-                            new_calls_count := 0;
-                            for i in 0 to currentFloor-1 loop
-                                if combinedRequest(i) = '1' then
-                                    new_calls_count := new_calls_count + 1;
-                                end if;
-                            end loop;
-                        else
-                            next_intension := "00";
-                            new_calls_count := 0;
-                        end if;
-                end case;
+            if intention_int = "10" and move_up_request_int(current_floor_int) = '1' then
+                move_up_request_int(current_floor_int) := '0';
+                left_floors := move_up_request_int(current_floor_int downto 0);
+                move_up_request_int(current_floor_int) := '1' when not (left_floors = (others => '0')) else '0';  -- Se intencao eh subir e o vetor de subir tem pedido no andar atual, apaga pedido
+                at_destination := left_floors = (others => '0');
+            elsif intention_int = "01" and move_dn_request_int(current_floor_int) = '1' then
+                move_dn_request_int(current_floor_int) := '0';
+                left_floors := move_dn_request_int(31 downto current_floor_int);
+                move_dn_request_int(current_floor_int) := '1' when not (left_floors = (others => '0')) else '0'; -- Se intencao eh descer e o vetor de descer tem pedido no andar atual, apaga pedido
+                at_destination := left_floors = (others => '0');
             else
-                -- Mantém a direção atual pois ainda há chamadas
-                next_intension := intension_int;
+                at_destination := true when move_up_request_int(current_floor_int) or move_dn_request_int(current_floor_int) else false; 
+                move_up_request_int(current_floor_int) := '0';
+                move_dn_request_int(current_floor_int) := '0';
+            end if;
             end if;
 
-            -- Casos especiais para andares extremos
-            if currentFloor = 0 and next_intension /= "00" then
-                next_intension := "10";
-            elsif currentFloor = 31 and next_intension /= "00" then
-                next_intension := "01";
-            end if;
-
-            -- Atualiza sinais
-            intension_int <= next_intension;
-            request_vector_int <= combinedRequest;
-            prev_int_floor_request <= int_floor_request;
-            prev_ext_floor_request <= ext_floor_request;
-            calls_count <= new_calls_count;
-
-            -- Controle de porta e movimento
             if at_destination then
                 op_int <= '1';
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
-            elsif next_intension /= "00" and dr_int = '0' then
-                op_int <= '0';
-                cl_int <= '0';
-                
-                if next_intension = "10" then
-                    up_int <= '1';
-                    dn_int <= '0';
-                elsif next_intension = "01" then
-                    up_int <= '0';
-                    dn_int <= '1';
-                else
-                    up_int <= '0';
-                    dn_int <= '0';
-                end if;
-            elsif next_intension /= "00" and dr_int = '1' then
+            else
+                -- Fecha a porta se tudo der errado    
                 op_int <= '0';
                 cl_int <= '1';
-                up_int <= '0';
-                dn_int <= '0';
-            else
-                op_int <= '0';
-                cl_int <= '0';
-                up_int <= '0';
-                dn_int <= '0';
+
+                -- Atualiza a existencia de chamadas
+                if intention_int = "10" then
+                    call_exists := move_up_request_int /= (others => '0'); -- se esta subindo, verifica se tem chamadas subindo
+                elsif intention_int = "01" then
+                    call_exists := move_dn_request_int /= (others => '0'); -- se esta descendo, verifica se tem chamadas descendo
+                else
+                    call_exists := (move_up_request_int /= (others => '0')) or (move_dn_request_int /= (others => '0')); -- se parado, verifica ambos
+                end if;
+
+                if not call_exists then
+                    if intention_int = "10" then
+                        call_exists := move_dn_request_int /= (others => '0'); -- se estava subindo e nao ha mais chamadas subindo, verifica se ha chamadas descendo
+                    elsif intention_int = "01" then
+                        call_exists := move_up_request_int /= (others => '0'); -- se estava descendo e nao ha mais chamadas descendo, verifica se ha chamadas subindo
+                    end if;
+                end if;
+                if not call_exists then
+                    intention_int <= "00"; -- se nao ha chamadas, para o elevador
+                    status <= "00";
+                    dn_int <= '0';
+                    up_int <= '0';
+                    -- pensar depois em fechar a porta se nao ha chamadas
+                end if;
+                if call_exists and intention_int = "00" then
+                        if move_dn_request_int /= (others => '0') then
+                            intention_int <= "01"; -- se parado e houver chamadas, decide a direcao baseado na primeira chamada
+                        else
+                            intention_int <= "10";
+                        end if;
+                end if;
+
+                if intention_int /= "00" then
+                    if intention_int = "10" then
+                        left_floors := move_up_request_int(current_floor_int downto 0);
+                        if left_floors /= (others => '0') then
+                            status <= "10";
+                            dn_int <= '0';
+                            up_int <= '1';
+                        else
+                            status <= "01";
+                            dn_int <= '1';
+                            up_int <= '0';
+                        end if;
+                    else
+                        left_floors := move_dn_request_int(31 downto current_floor_int);
+                        if left_floors /= (others => '0') then
+                            status <= "01";
+                            dn_int <= '1';
+                            up_int <= '0';
+                        else
+                            status <= "10";
+                            dn_int <= '0';
+                            up_int <= '1';
+                        end if;
+                    end if;
+                end if;
             end if;
 
-        end if;
+        current_floor <=  std_logic_vector(to_unsigned(current_floor_int, 5));
+        intention <= intention_int;
+
     end process;
 
 end arch;

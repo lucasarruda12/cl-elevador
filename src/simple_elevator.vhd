@@ -5,12 +5,12 @@ entity simple_elevator is
   generic (w : natural := 5);
   port (
     clk : in  std_logic;
-    op  : in  std_logic;
-    cl  : in  std_logic;
-    up  : in  std_logic;
-    dn  : in  std_logic;
-    dr  : out std_logic;
-    fr  : out std_logic_vector(w-1 downto 0)
+    op  : in  std_logic; -- open door
+    cl  : in  std_logic; -- close door
+    up  : in  std_logic; -- move up
+    dn  : in  std_logic; -- move down
+    dr  : out std_logic; -- door status (1=open, 0=closed)
+    current_floor  : out std_logic_vector(w-1 downto 0)
   );
 end simple_elevator;
 
@@ -52,6 +52,6 @@ begin
           clk => clk,
           up => up_int,
           dn => dn_int, --mudei de dn para dn_int
-          q => fr
+          q => current_floor
       );
 end arch;
