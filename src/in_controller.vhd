@@ -191,30 +191,60 @@ begin
 
                 if intention_var /= "00" then --chamadas existem
                     if intention_var = "10" then
-                        left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_var)), 32));
-                        if left_floors /= zeros then
-                            status <= "10";
-                            status_int := "10";
-                            dn_int <= '0';
-                            up_int <= '1';
-                        else
-                            status <= "01";
-                            status_int := "01";
-                            dn_int <= '1';
-                            up_int <= '0';
+                        if status_int = "10" or status_int = "00" then
+                            left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_var)), 32));
+                            if left_floors /= zeros then
+                                status <= "10";
+                                status_int := "10";
+                                dn_int <= '0';
+                                up_int <= '1';
+                            else
+                                status <= "01";
+                                status_int := "01";
+                                dn_int <= '1';
+                                up_int <= '0';
+                            end if;
+                        elsif status_int = "01" then
+                            left_floors := std_logic_vector(resize(unsigned(move_up_request_var(next_floor_var downto 0)), 32));
+                            if left_floors /= zeros then
+                                status <= "01";
+                                status_int := "01";
+                                dn_int <= '1';
+                                up_int <= '0';
+                            else
+                                status <= "10";
+                                status_int := "10";
+                                dn_int <= '0';
+                                up_int <= '1';
+                            end if;
                         end if;
-                    else -- intenção = 01; isso nao leva em consideração o estadooooo
-                        left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_var downto 0)), 32));
-                        if left_floors /= std_logic_vector(resize(unsigned(zeros(next_floor_var downto 0)), 32)) then
-                            status <= "01";
-                            status_int := "01";
-                            dn_int <= '1';
-                            up_int <= '0';
-                        else
-                            status <= "10";
-                            status_int := "10";
-                            dn_int <= '0';
-                            up_int <= '1';
+                    else -- intenção = 01
+                        if status_int = "01" or status_int = "00" then --descendo com intenção de descer
+                            left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_var downto 0)), 32));
+                            if left_floors /= zeros then
+                                status <= "01";
+                                status_int := "01";
+                                dn_int <= '1';
+                                up_int <= '0';
+                            else
+                                status <= "10";
+                                status_int := "10";
+                                dn_int <= '0';
+                                up_int <= '1';
+                            end if;
+                        elsif status_int = "10" then --subindo com a intenção de descer
+                            left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(31 downto next_floor_var)), 32));
+                            if left_floors /= zeros then
+                                status <= "10";
+                                status_int := "10";
+                                dn_int <= '0';
+                                up_int <= '1';
+                            else
+                                status <= "01";
+                                status_int := "01";
+                                dn_int <= '1';
+                                up_int <= '0';
+                            end if;
                         end if;
                     end if;
                 end if;
