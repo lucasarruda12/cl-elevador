@@ -14,6 +14,7 @@ entity score_calc is
 end score_calc;
 
 architecture arch of score_calc is
+begin
 -- Falta implementar
 end arch;
 

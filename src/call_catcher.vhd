@@ -1,11 +1,6 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
-
-type call is record
-  active : std_logic;
-  score  : std_logic_vector(5 downto 0);
-  respondent : std_logic_vector(1 downto 0);
-end record;
+use work.custom_types.call;
 
 entity call_catcher is
   generic (w : natural := 5);
@@ -17,7 +12,7 @@ entity call_catcher is
     target_intention  : in std_logic;
     my_resp_id        : in std_logic_vector(1 downto 0);
     call_in           : in call;
-    call_out          : out call;
+    call_out          : out call);
 end call_catcher;
 
 architecture arch of call_catcher is
