@@ -4,23 +4,51 @@ use IEEE.std_logic_1164.all;
 type call is record
   active : std_logic;
   score  : std_logic_vector(5 downto 0);
-  respondent : std_logic_vector(2 downto 0);
+  respondent : std_logic_vector(1 downto 0);
 end record;
 
-type call_vector is array (natural range <>) of call;
-
 entity call_catcher is
-  generic (
-    f : natural := 32;  -- Floors in the building
-    r : natural;        -- My respondent id
+  generic (w : natural := 5);
   port (
-    going_up          : in  call_vector(f-1 downto 0);
-    going_down        : in  call_vector(f-1 downto 0);
-    going_up_caught   : out call_vector(f-1 downto 0);
-    going_down_caught : out call_vector(f-1 downto 0));
+    current_floor     : in std_logic_vector(w-1 downto 0);
+    current_direction : in std_logic_vector(1 downto 0);
+    current_intention : in std_logic;
+    target_floor      : in std_logic_vector(w-1 downto 0);
+    target_intention  : in std_logic;
+    my_resp_id        : in std_logic_vector(1 downto 0);
+    call_in           : in call;
+    call_out          : out call;
 end call_catcher;
 
 architecture arch of call_catcher is
--- Falta implementar
-end arch;
+  component score_calc
+    generic (w : natural := 5);
+  port (
+    current_floor       : in std_logic_vector(w-1 downto 0);
+    current_direction   : in std_logic_vector(1 downto 0);
+    current_intention   : in std_logic;
+    target_floor        : in std_logic_vector(w-1 downto 0);
+    target_intention    : in std_logic;
+    score               : out std_logic_vector(w downto 0));
+  end component;
 
+  signal my_score : std_logic_vector(w downto 0);
+begin
+  score_calc_inst : score_calc
+      generic map (w => w)
+      port map (
+          current_floor => current_floor,
+          current_direction => current_direction,
+          current_intention => current_intention,
+          target_floor => target_floor,
+          target_intention => target_intention,
+          score => my_score
+      );
+
+  call_out.active <= call_in.active; 
+  call_out.score  <= my_score when my_score > call_in.score
+                     else call_in.score;
+
+  call_out.respondent <= my_resp_id when my_score > call_in.score
+                         else call_in.respondent;
+end arch;
