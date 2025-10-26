@@ -8,7 +8,7 @@ entity call_catcher is
   port (
     current_floor     : in  std_logic_vector(w-1 downto 0);
     current_status    : in  std_logic_vector(1 downto 0);
-    current_intention : in  std_logic;
+    current_intention : in  std_logic_vector(1 downto 0);
     my_resp_id        : in  std_logic_vector(1 downto 0);
 
     going_up          : in  call_vector((2**w)-1 downto 0);
@@ -24,9 +24,9 @@ architecture arch of call_catcher is
     port (
       current_floor     : in std_logic_vector(w-1 downto 0);
       current_status    : in std_logic_vector(1 downto 0);
-      current_intention : in std_logic;
+      current_intention : in std_logic_vector(1 downto 0);
       target_floor      : in std_logic_vector(w-1 downto 0);
-      target_intention  : in std_logic;
+      target_intention  : in std_logic_vector(1 downto 0);
       my_resp_id        : in std_logic_vector(1 downto 0);
       call_in           : in call;
       call_out          : out call);
@@ -44,7 +44,7 @@ begin
         current_status    => current_status,
         current_intention => current_intention,
         target_floor      => target_floor_const,
-        target_intention  => '1',
+        target_intention  => "10",
         my_resp_id        => my_resp_id,
         call_in           => going_up(i),
         call_out          => going_up_caught(i)
@@ -57,7 +57,7 @@ begin
         current_status    => current_status,
         current_intention => current_intention,
         target_floor      => target_floor_const,
-        target_intention  => '0',
+        target_intention  => "01",
         my_resp_id        => my_resp_id,
         call_in           => going_down(i),
         call_out          => going_down_caught(i)

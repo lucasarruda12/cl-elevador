@@ -7,9 +7,9 @@ entity single_call_catcher is
   port (
     current_floor     : in std_logic_vector(w-1 downto 0);
     current_status    : in std_logic_vector(1 downto 0);
-    current_intention : in std_logic;
+    current_intention : in std_logic_vector(1 downto 0);
     target_floor      : in std_logic_vector(w-1 downto 0);
-    target_intention  : in std_logic;
+    target_intention  : in std_logic_vector(1 downto 0);
     my_resp_id        : in std_logic_vector(1 downto 0);
     call_in           : in call;
     call_out          : out call);
@@ -21,9 +21,9 @@ architecture arch of single_call_catcher is
   port (
     current_floor       : in std_logic_vector(w-1 downto 0);
     current_status      : in std_logic_vector(1 downto 0);
-    current_intention   : in std_logic;
+    current_intention   : in std_logic_vector(1 downto 0);
     target_floor        : in std_logic_vector(w-1 downto 0);
-    target_intention    : in std_logic;
+    target_intention    : in std_logic_vector(1 downto 0);
     score               : out std_logic_vector(w downto 0));
   end component;
 
