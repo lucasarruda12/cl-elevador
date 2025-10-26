@@ -40,8 +40,19 @@ architecture arch of in_controller is
         );
     end component;
 
+    component next_floor_calculator is
+        generic (w : natural := 5);
+        port (
+            up             : in std_logic;
+            dn             : in std_logic;
+            current_floor  : in std_logic_vector(w-1 downto 0);
+            next_floor     : out std_logic_vector(w-1 downto 0)
+        );
+    end component;
+
 begin
 
+    -- Mecanismo do elevador
     simple_elevator_inst: simple_elevator
         generic map(w => w)
         port map (
@@ -54,12 +65,21 @@ begin
             current_floor  => current_floor_int
         );
 
+    -- Calculo do proximo andar
+    next_floor_calculator_inst: next_floor_calculator
+        generic map(w => w)
+        port map (
+            up             => up_int,
+            dn             => dn_int,
+            current_floor  => current_floor_int,
+            next_floor     => next_floor_int
+        );
+
     current_floor <= current_floor_int;
     intention <= intention_int;
 
     process(clk)
         variable current_floor_var   : integer;
-        variable next_floor_var      : integer;
         variable added_calls         : integer;
         variable at_destination      : boolean;
         variable call_exists         : boolean;
@@ -75,15 +95,6 @@ begin
             current_floor_var := CONV_INTEGER(current_floor_int);
             intention_var := intention_int;
 
---==========================================================================
--- Calculando o próximo andar a partir do sinal atual de up_int/dn_int
-            if up_int = '1' then
-                next_floor_var := current_floor_var + 1;
-            elsif dn_int = '1' then
-                next_floor_var := current_floor_var - 1;
-            else
-                next_floor_var := current_floor_var;
-            end if;
 --==========================================================================
 
             -- Atualizando os vetores de chamadas baseando-se nas chamadas do clock passado e dos sinais que vem do controlador externo
@@ -107,49 +118,49 @@ begin
 -- Ele checa sempre se o PROXIMO ANDAR será um andar com chamada ativa
 -- Ao final dessa seção a variavel at_destination nos informará se o elevador deve parar e abrir a porta ou não!
                   
-            if intention_int = "10" and move_up_request_var(next_floor_var) = '1' then
+            if intention_int = "10" and move_up_request_var(next_floor_int) = '1' then
                 if status_int = "01" then -- INTENÇÃO: SUBIR,   STATUS: DESCER
-                    move_up_request_var(next_floor_var) := '0';
-                    left_floors := std_logic_vector(resize(unsigned(move_up_request_var(next_floor_var downto 0)), 32));
+                    move_up_request_var(next_floor_int) := '0';
+                    left_floors := std_logic_vector(resize(unsigned(move_up_request_var(next_floor_int downto 0)), 32));
                     at_destination := left_floors = zeros;
                     if not (left_floors = zeros) then
-                        move_up_request_var(next_floor_var) := '1';
+                        move_up_request_var(next_floor_int) := '1';
                         at_destination := (left_floors = zeros);
                     else
-                        move_up_request_var(next_floor_var) := '0';
+                        move_up_request_var(next_floor_int) := '0';
                         at_destination := left_floors = zeros;
                     end if;
                 elsif status_int = "10" then -- INTENÇÃO: SUBIR, STATUS: SUBIR
-                    move_up_request_var(next_floor_var) := '0';
-                    left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_var)), 32));
+                    move_up_request_var(next_floor_int) := '0';
+                    left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_int)), 32));
                     at_destination := true;
                 end if;
 
-            elsif intention_int = "01" and move_dn_request_var(next_floor_var) = '1' then
+            elsif intention_int = "01" and move_dn_request_var(next_floor_int) = '1' then
                 if status_int = "10" then -- INTENÇÃO: DESCER, STATUS SUBIR
-                    move_dn_request_var(next_floor_var) := '0'; 
-                    left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(31 downto next_floor_var)), 32));
+                    move_dn_request_var(next_floor_int) := '0'; 
+                    left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(31 downto next_floor_int)), 32));
                     at_destination := left_floors = zeros;
                     if not (left_floors = zeros) then
-                        move_dn_request_var(next_floor_var) := '1';
+                        move_dn_request_var(next_floor_int) := '1';
                         at_destination := false;
                     else
-                        move_dn_request_var(next_floor_var) := '0';
+                        move_dn_request_var(next_floor_int) := '0';
                         at_destination := true;
                     end if;
                 elsif status_int = "01" then -- INTENÇÃO: DESCER, STATUS: DESCER
-                        move_dn_request_var(next_floor_var) := '0';
-                        left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_var downto 0)), 32));
+                        move_dn_request_var(next_floor_int) := '0';
+                        left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_int downto 0)), 32));
                         at_destination := true;
                 end if;
             else -- INTENÇÃO: SEM INTENÇÃO
-                if move_up_request_var(next_floor_var) = '1' or move_dn_request_var(next_floor_var) = '1' then
+                if move_up_request_var(next_floor_int) = '1' or move_dn_request_var(next_floor_int) = '1' then
                     at_destination := true;
                 else
                     at_destination := false;
                 end if;
-                move_up_request_var(next_floor_var) := '0';
-                move_dn_request_var(next_floor_var) := '0';
+                move_up_request_var(next_floor_int) := '0';
+                move_dn_request_var(next_floor_int) := '0';
             end if;
 --===================================================================================================================================
 
@@ -213,7 +224,7 @@ begin
                 if intention_var /= "00" then --chamadas existem
                     if intention_var = "10" then
                         if status_int = "10" or status_int = "00" then 
-                            left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_var)), 32));
+                            left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_int)), 32));
                             if left_floors /= zeros then  -- CASO ELE ESTIVER PARADO OU SUBINDO COM A INTENÇÃO DE SUBIR E AINDA HOUVEREM CHAMADAS ACIMA, ELE SOBE
                                 status <= "10";
                                 status_int := "10";
@@ -226,7 +237,7 @@ begin
                                 up_int <= '0';
                             end if;
                         elsif status_int = "01" then
-                            left_floors := std_logic_vector(resize(unsigned(move_up_request_var(next_floor_var downto 0)), 32));
+                            left_floors := std_logic_vector(resize(unsigned(move_up_request_var(next_floor_int downto 0)), 32));
                             if left_floors /= zeros then  -- CASO ELE ESTIVER DESCENDO COM A INTENÇÃO DE SUBIR E AINDA HOUVEREM CHAMADAS ABAIXO, ELE CONTINUA DESCENDO
                                 status <= "01";
                                 status_int := "01";
@@ -241,7 +252,7 @@ begin
                         end if;
                     else -- NESSE CASO A INTENÇÃO SERÁ "01"
                         if status_int = "01" or status_int = "00" then -- CASO ELE ESTIVER DESCENDO OU PARADO COM A INTENÇÃO DE DESCER E AINDA HOUVEREM CHAMADAS ABAIXO, ELE DESCE
-                            left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_var downto 0)), 32));
+                            left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_int downto 0)), 32));
                             if left_floors /= zeros then -- CASO ELE ESTIVER DESCENDO OU PARADO COM A INTENÇÃO DE DESCER E AINDA HOUVEREM CHAMADAS ABAIXO, ELE DESCE
                                 status <= "01";
                                 status_int := "01";
@@ -254,7 +265,7 @@ begin
                                 up_int <= '1';
                             end if;
                         elsif status_int = "10" then -- CASO ELE ESTIVER SUBINDO COM A INTENÇÃO DE DESCER E HOUVEREM CHAMADAS ACIMA, ELE SOBE
-                            left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(31 downto next_floor_var)), 32));
+                            left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(31 downto next_floor_int)), 32));
                             if left_floors /= zeros then
                                 status <= "10";
                                 status_int := "10";
