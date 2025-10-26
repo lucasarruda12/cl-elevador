@@ -6,8 +6,8 @@ use work.custom_types.all;
 entity call_dispatcher is
   generic (w : natural := 5);
   port (
-    going_up_caught   : in call_vector(0 to (2**w)-1);
-    going_down_caught : in call_vector(0 to (2**w)-1);
+    going_up_caught   : in call_vector((2**w)-1 downto 0);
+    going_down_caught : in call_vector((2**w)-1 downto 0);
 
     el1_going_up      : out std_logic_vector((2**w)-1 downto 0);
     el1_going_down    : out std_logic_vector((2**w)-1 downto 0);
@@ -18,9 +18,8 @@ entity call_dispatcher is
     el3_going_up      : out std_logic_vector((2**w)-1 downto 0);
     el3_going_down    : out std_logic_vector((2**w)-1 downto 0);
 
-    rej_going_up      : out call_vector(0 to (2**w)-1);
-    rej_going_down    : out call_vector(0 to (2**w)-1)
-  );
+    rej_going_up      : out call_vector((2**w)-1 downto 0);
+    rej_going_down    : out call_vector((2**w)-1 downto 0));
 end call_dispatcher;
 
 architecture arch of call_dispatcher is

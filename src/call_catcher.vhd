@@ -11,12 +11,11 @@ entity call_catcher is
     current_intention : in  std_logic;
     my_resp_id        : in  std_logic_vector(1 downto 0);
 
-    going_up          : in  call_vector(0 to (2**w)-1);
-    going_down        : in  call_vector(0 to (2**w)-1);
+    going_up          : in  call_vector((2**w)-1 downto 0);
+    going_down        : in  call_vector((2**w)-1 downto 0);
 
-    going_up_caught   : out call_vector(0 to (2**w)-1);
-    going_down_caught : out call_vector(0 to (2**w)-1)
-  );
+    going_up_caught   : out call_vector((2**w)-1 downto 0);
+    going_down_caught : out call_vector((2**w)-1 downto 0));
 end call_catcher;
 
 architecture arch of call_catcher is

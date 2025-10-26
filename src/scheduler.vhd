@@ -30,17 +30,17 @@ entity scheduler is
 end scheduler;
 
 architecture arch of scheduler is
-  signal rej_going_up    : call_vector(0 to (2**w)-1);
-  signal rej_going_down  : call_vector(0 to (2**w)-1);
+  signal rej_going_up    : call_vector((2**w)-1 downto 0);
+  signal rej_going_down  : call_vector((2**w)-1 downto 0);
 
-  signal rej_going_up_int : call_vector(0 to (2**w)-1);
-  signal rej_going_down_int : call_vector(0 to (2**w)-1);
-  signal el1_going_up_int : call_vector(0 to (2**w)-1);
-  signal el1_going_down_int : call_vector(0 to (2**w)-1);
-  signal el2_going_up_int : call_vector(0 to (2**w)-1);
-  signal el2_going_down_int : call_vector(0 to (2**w)-1);
-  signal el3_going_up_int : call_vector(0 to (2**w)-1);
-  signal el3_going_down_int : call_vector(0 to (2**w)-1);
+  signal rej_going_up_int : call_vector((2**w)-1 downto 0);
+  signal rej_going_down_int : call_vector((2**w)-1 downto 0);
+  signal el1_going_up_int : call_vector((2**w)-1 downto 0);
+  signal el1_going_down_int : call_vector((2**w)-1 downto 0);
+  signal el2_going_up_int : call_vector((2**w)-1 downto 0);
+  signal el2_going_down_int : call_vector((2**w)-1 downto 0);
+  signal el3_going_up_int : call_vector((2**w)-1 downto 0);
+  signal el3_going_down_int : call_vector((2**w)-1 downto 0);
 
   component call_catcher is
     generic (w : natural := 5);
@@ -50,19 +50,19 @@ architecture arch of scheduler is
       current_intention : in  std_logic;
       my_resp_id        : in  std_logic_vector(1 downto 0);
 
-      going_up          : in  call_vector(0 to (2**w)-1);
-      going_down        : in  call_vector(0 to (2**w)-1);
+      going_up          : in  call_vector((2**w)-1 downto 0);
+      going_down        : in  call_vector((2**w)-1 downto 0);
 
-      going_up_caught   : out call_vector(0 to (2**w)-1);
-      going_down_caught : out call_vector(0 to (2**w)-1)
+      going_up_caught   : out call_vector((2**w)-1 downto 0);
+      going_down_caught : out call_vector((2**w)-1 downto 0)
     );
   end component;
 
   component call_dispatcher is
     generic (w : natural := 5);
     port (
-      going_up_caught   : in call_vector(0 to (2**w)-1);
-      going_down_caught : in call_vector(0 to (2**w)-1);
+      going_up_caught   : in call_vector((2**w)-1 downto 0);
+      going_down_caught : in call_vector((2**w)-1 downto 0);
 
       el1_going_up      : out std_logic_vector((2**w)-1 downto 0);
       el1_going_down    : out std_logic_vector((2**w)-1 downto 0);
@@ -73,8 +73,8 @@ architecture arch of scheduler is
       el3_going_up      : out std_logic_vector((2**w)-1 downto 0);
       el3_going_down    : out std_logic_vector((2**w)-1 downto 0);
 
-      rej_going_up      : out call_vector(0 to (2**w)-1);
-      rej_going_down    : out call_vector(0 to (2**w)-1)
+      rej_going_up      : out call_vector((2**w)-1 downto 0);
+      rej_going_down    : out call_vector((2**w)-1 downto 0)
     );
   end component;
 begin
