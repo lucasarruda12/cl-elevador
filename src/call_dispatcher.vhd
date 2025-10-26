@@ -18,8 +18,8 @@ entity call_dispatcher is
     el3_going_up      : out std_logic_vector((2**w)-1 downto 0);
     el3_going_down    : out std_logic_vector((2**w)-1 downto 0);
 
-    rej_going_up      : out std_logic_vector((2**w)-1 downto 0);
-    rej_going_down    : out std_logic_vector((2**w)-1 downto 0)
+    rej_going_up      : out call_vector(0 to (2**w)-1);
+    rej_going_down    : out call_vector(0 to (2**w)-1)
   );
 end call_dispatcher;
 
@@ -27,9 +27,9 @@ architecture arch of call_dispatcher is
 begin
   gen : for i in 0 to (2**w)-1 generate
   begin
-    rej_going_up(i) <= going_up_caught(i).active when
+    rej_going_up(i) <= going_up_caught(i) when
                        going_up_caught(i).respondent = "00"
-                       else '0';
+                       else ('0', "000000", "00");
       
     el1_going_up(i) <= going_up_caught(i).active when
                        going_up_caught(i).respondent = "01"
@@ -43,9 +43,9 @@ begin
                        going_up_caught(i).respondent = "11"
                        else '0';
 
-    rej_going_down(i) <= going_down_caught(i).active when
+    rej_going_down(i) <= going_down_caught(i) when
                          going_down_caught(i).respondent = "00"
-                         else '0';
+                         else ('0', "000000", "00");
       
     el1_going_down(i) <= going_down_caught(i).active when
                          going_down_caught(i).respondent = "01"

@@ -10,29 +10,29 @@ entity scheduler is
     going_up    : in std_logic_vector(w-1 downto 0);
     going_down  : in std_logic_vector(w-1 downto 0);
 
-    rej_going_up    : in call_vector(0 to (2**w)-1);
-    rej_going_down  : in call_vector(0 to (2**w)-1);
-
     el1_floor       : in std_logic_vector(w-1 downto 0);
     el1_status      : in std_logic_vector(1 downto 0);
     el1_intention   : in std_logic;
-    el1_going_up    : out call_vector(0 to (2**w)-1);
-    el1_going_down  : out call_vector(0 to (2**w)-1);
+    el1_going_up    : out std_logic_vector(0 to (2**w)-1);
+    el1_going_down  : out std_logic_vector(0 to (2**w)-1);
 
     el2_floor       : in std_logic_vector(w-1 downto 0);
     el2_status      : in std_logic_vector(1 downto 0);
     el2_intention   : in std_logic;
-    el2_going_up    : out call_vector(0 to (2**w)-1);
-    el2_going_down  : out call_vector(0 to (2**w)-1);
+    el2_going_up    : out std_logic_vector(0 to (2**w)-1);
+    el2_going_down  : out std_logic_vector(0 to (2**w)-1);
 
     el3_floor       : in std_logic_vector(w-1 downto 0);
     el3_status      : in std_logic_vector(1 downto 0);
     el3_intention   : in std_logic;
-    el3_going_up    : out call_vector(0 to (2**w)-1);
-    el3_going_down  : out call_vector(0 to (2**w)-1);
+    el3_going_up    : out std_logic_vector(0 to (2**w)-1);
+    el3_going_down  : out std_logic_vector(0 to (2**w)-1));
 end scheduler;
 
 architecture arch of scheduler is
+  signal rej_going_up    : call_vector(0 to (2**w)-1);
+  signal rej_going_down  : call_vector(0 to (2**w)-1);
+
   signal rej_going_up_int : call_vector(0 to (2**w)-1);
   signal rej_going_down_int : call_vector(0 to (2**w)-1);
   signal el1_going_up_int : call_vector(0 to (2**w)-1);
@@ -73,14 +73,14 @@ architecture arch of scheduler is
       el3_going_up      : out std_logic_vector((2**w)-1 downto 0);
       el3_going_down    : out std_logic_vector((2**w)-1 downto 0);
 
-      rej_going_up      : out std_logic_vector((2**w)-1 downto 0);
-      rej_going_down    : out std_logic_vector((2**w)-1 downto 0)
+      rej_going_up      : out call_vector(0 to (2**w)-1);
+      rej_going_down    : out call_vector(0 to (2**w)-1)
     );
   end component;
 begin
     -- Primeiro trabalho é transformar o vetor do teclado
     -- em um vetor de chamadas
-    gen_calls : for i in 0 to (2**w)-1 generate
+    gen_new_calls : for i in 0 to (2**w)-1 generate
     begin
         rej_going_up_int(i).active     <= going_up(i);
         rej_going_up_int(i).score      <= "000000";
@@ -92,7 +92,7 @@ begin
     end generate; 
 
     -- Segundo trabalho é recolocar os rejeitados do clock passado
-    gen_calls : for i in 0 to (2**w)-1 generate
+    gen_rej_calls : for i in 0 to (2**w)-1 generate
     begin
         rej_going_up_int(i).active     
         <= '1'
@@ -171,7 +171,6 @@ begin
         rej_going_down    => rej_going_down_int
       );
 
-  
   process(clk)
   begin
     if (clk'event and clk='1') then
