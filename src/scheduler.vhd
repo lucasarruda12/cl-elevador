@@ -13,20 +13,20 @@ entity scheduler is
     el1_floor       : in std_logic_vector(w-1 downto 0);
     el1_status      : in std_logic_vector(1 downto 0);
     el1_intention   : in std_logic;
-    el1_going_up    : out std_logic_vector(0 to (2**w)-1);
-    el1_going_down  : out std_logic_vector(0 to (2**w)-1);
+    el1_going_up    : out std_logic_vector((2**w)-1 downto 0);
+    el1_going_down  : out std_logic_vector((2**w)-1 downto 0);
 
     el2_floor       : in std_logic_vector(w-1 downto 0);
     el2_status      : in std_logic_vector(1 downto 0);
     el2_intention   : in std_logic;
-    el2_going_up    : out std_logic_vector(0 to (2**w)-1);
-    el2_going_down  : out std_logic_vector(0 to (2**w)-1);
+    el2_going_up    : out std_logic_vector((2**w)-1 downto 0);
+    el2_going_down  : out std_logic_vector((2**w)-1 downto 0);
 
     el3_floor       : in std_logic_vector(w-1 downto 0);
     el3_status      : in std_logic_vector(1 downto 0);
     el3_intention   : in std_logic;
-    el3_going_up    : out std_logic_vector(0 to (2**w)-1);
-    el3_going_down  : out std_logic_vector(0 to (2**w)-1));
+    el3_going_up    : out std_logic_vector((2**w)-1 downto 0);
+    el3_going_down  : out std_logic_vector((2**w)-1 downto 0));
 end scheduler;
 
 architecture arch of scheduler is
