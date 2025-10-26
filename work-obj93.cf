@@ -1,0 +1,7 @@
+v 4
+file . "src/internal_controller/testbenchs/next_floor_calculator_tb.vhd" "f34e001a77c2bbe9afcef845982d45e61675539c" "20251026214416.860":
+  entity next_floor_calculator_tb at 1( 0) + 0 on 21;
+  architecture sim of next_floor_calculator_tb at 8( 136) + 0 on 22;
+file . "src/internal_controller/next_floor_calculator.vhd" "01fc1d18a10a0388a6c886bc4c6588762de79376" "20251026214416.850":
+  entity next_floor_calculator at 1( 0) + 0 on 19;
+  architecture arch of next_floor_calculator at 15( 378) + 0 on 20;
