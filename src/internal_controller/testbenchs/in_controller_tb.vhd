@@ -384,7 +384,7 @@ begin
             
             -- Verificar consistencia porta/status
             if dr = '1' then  -- Porta aberta
-                if status /= "00" then
+                if status = "00" then
                     report "[PORTA] Aberta no andar " & integer'image(current_floor_int);
                 else
                     report "Erro: Porta aberta durante movimento.";
