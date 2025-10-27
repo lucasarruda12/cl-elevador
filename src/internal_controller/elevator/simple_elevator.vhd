@@ -15,17 +15,12 @@ entity simple_elevator is
 end simple_elevator;
 
 architecture arch of simple_elevator is
-  component single_call_catcher is
-    generic (w : natural := 5);
+  component door is
     port (
-      current_floor     : in std_logic_vector(w-1 downto 0);
-      current_direction : in std_logic_vector(1 downto 0);
-      current_intention : in std_logic;
-      target_floor      : in std_logic_vector(w-1 downto 0);
-      target_intention  : in std_logic;
-      my_resp_id        : in std_logic_vector(1 downto 0);
-      call_in           : in call;
-      call_out          : out call);
+      clk : std_logic;
+      op : std_logic;
+      cl : std_logic;
+      q   : out std_logic);
   end component;
 
   component move_counter
@@ -46,9 +41,9 @@ begin
   door_inst : door
     port map (clk, op, cl, dr_int);
 
-  up_int <= up and not dr_int;
-  dn_int <= dn and not dr_int;
-  dr <= dr_int;
+    up_int <= up and not dr_int;
+    dn_int <= dn and not dr_int;
+    dr <= dr_int;
 
   move_counter_inst : move_counter
       generic map (w => w)

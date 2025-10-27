@@ -1,0 +1,18 @@
+project open /home/lucas/cl-elevador/work
+# Loading project work
+# Compile of custom_types.vhd was successful.
+# Compile of call_catcher.vhd was successful.
+# Compile of call_dispatcher.vhd was successful.
+# Compile of scheduler.vhd was successful.
+# Compile of score_calc.vhd was successful.
+# Compile of single_call_catcher.vhd was successful.
+# Compile of tb_call_catcher.vhd was successful.
+# Compile of tb_call_dispatcher.vhd was successful.
+# Compile of tb_scheduler.vhd was successful.
+# Compile of door.vhd was successful.
+# Compile of move_counter.vhd was successful.
+# Compile of simple_elevator.vhd was successful.
+# 12 compiles, 0 failed with no errors.
+# Break key hit
+# Break key hit
+# Break key hit
