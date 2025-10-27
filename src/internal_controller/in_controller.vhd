@@ -1,18 +1,19 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
-use IEEE.std_logic_unsigned.all;
 use IEEE.numeric_std.all;
 
 entity in_controller is
   generic (w : natural := 5);
   port (
     clk               : in std_logic;
+    reset             : in std_logic := '0';
     int_floor_request : in std_logic_vector(31 downto 0);
     move_up_request   : in std_logic_vector (31 downto 0);
     move_dn_request   : in std_logic_vector (31 downto 0);
     current_floor     : out std_logic_vector(w-1 downto 0);
-    status            : out std_logic_vector(1 downto 0);
-    intention         : out std_logic_vector(1 downto 0)
+    status            : out std_logic_vector(1 downto 0) := (others => '0');
+    intention         : out std_logic_vector(1 downto 0);
+    dr                : out std_logic
   );
 end in_controller;
 
@@ -21,16 +22,17 @@ architecture arch of in_controller is
     signal cl_int              : std_logic := '0';
     signal up_int              : std_logic := '0';
     signal dn_int              : std_logic := '0';
-    signal current_floor_int   : std_logic_vector(w-1 downto 0);
-    signal dr_int              : std_logic;
     signal intention_int       : std_logic_vector(1 downto 0) := "00";
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
+    signal current_floor_int   : std_logic_vector(w-1 downto 0) := (others => '0');
+    signal next_floor_int      : integer := 0;
 
     component simple_elevator is
         generic (w : natural := 5);
         port (
             clk            : in  std_logic;
+            reset          : in  std_logic; 
             op             : in  std_logic;
             cl             : in  std_logic;
             up             : in  std_logic;
@@ -46,7 +48,7 @@ architecture arch of in_controller is
             up             : in std_logic;
             dn             : in std_logic;
             current_floor  : in std_logic_vector(w-1 downto 0);
-            next_floor     : out std_logic_vector(w-1 downto 0)
+            next_floor     : out integer
         );
     end component;
 
@@ -57,11 +59,12 @@ begin
         generic map(w => w)
         port map (
             clk            => clk,
+            reset          => reset,
             op             => op_int,
             cl             => cl_int,
             up             => up_int,
             dn             => dn_int,
-            dr             => dr_int,
+            dr             => dr,
             current_floor  => current_floor_int
         );
 
@@ -78,7 +81,7 @@ begin
     current_floor <= current_floor_int;
     intention <= intention_int;
 
-    process(clk)
+    process(clk, reset)
         variable current_floor_var   : integer;
         variable added_calls         : integer;
         variable at_destination      : boolean;
@@ -91,8 +94,17 @@ begin
         variable intention_var       : std_logic_vector(1 downto 0)  := (others => '0');
 
     begin
-        if rising_edge(clk) then
-            current_floor_var := CONV_INTEGER(current_floor_int);
+        if rising_edge(reset) then
+            op_int <= '0';
+            cl_int <= '0';
+            up_int <= '0';
+            dn_int <= '0';
+            intention_int <= "00";
+            move_up_request_int <= (others => '0');
+            move_dn_request_int <= (others => '0');
+            status <= (others => '0');
+        elsif rising_edge(clk) then
+            current_floor_var := to_integer(unsigned(current_floor_int));
             intention_var := intention_int;
 
 --==========================================================================
@@ -271,7 +283,7 @@ begin
                                 status_int := "10";
                                 dn_int <= '0';
                                 up_int <= '1';
-                            else -- CASO ELE ESTIVER SUBINDO COM A INTENﾃ�ﾃグ DE DESCER, HOUVEREM CHAMADAS E ESSAS CHAMADAS Nﾃグ ESTﾃグ ACIMA, SABEMOS QUE ELAS ESTﾃグ ABAIXO, ELE DESCE
+                            else -- CASO ELE ESTIVER SUBINDO COM A INTENCAグ DE DESCER, HOUVEREM CHAMADAS E ESSAS CHAMADAS Nﾃグ ESTﾃグ ACIMA, SABEMOS QUE ELAS ESTﾃグ ABAIXO, ELE DESCE
                                 status <= "01";
                                 status_int := "01";
                                 dn_int <= '1';
