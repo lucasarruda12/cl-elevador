@@ -41,9 +41,11 @@ begin
       );
 
   call_out.active <= call_in.active; 
-  call_out.score  <= my_score when my_score > call_in.score
+  call_out.score  <= my_score 
+                     when (my_score > call_in.score) and call_in.active='1'
                      else call_in.score;
 
-  call_out.respondent <= my_resp_id when my_score > call_in.score
+  call_out.respondent <= my_resp_id 
+                         when (my_score > call_in.score) and call_in.active='1'
                          else call_in.respondent;
 end arch;
