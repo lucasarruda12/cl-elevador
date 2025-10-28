@@ -60,8 +60,8 @@ begin
         clk   => clk,
         reset => reset,
         up    => up_int,
-        dn    => dn_int, --mudei de dn para dn_int
-        q     => current_floor
+        dn  => dn_int, --mudei de dn para dn_int
+        q   => current_floor
     );
 
 end arch;

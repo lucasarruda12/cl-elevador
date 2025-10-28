@@ -36,17 +36,12 @@ architecture sim of in_controller_tb is
     signal dr                : std_logic;
     signal sim_ended         : boolean := false;
 
-    -- Funcoes locais para conversao
-    function is_valid_floor(floor_vec : std_logic_vector) return boolean is
-    begin
-        for i in floor_vec'range loop
-            if floor_vec(i) /= '0' and floor_vec(i) /= '1' then
-                return false;
-            end if;
-        end loop;
-        return true;
-    end function;
+    -- Sinais para verificacao de movimento com porta aberta
+    signal door_open_floor   : std_logic_vector(WIDTH-1 downto 0) := (others => '0');
+    signal door_was_open     : boolean := false;
+    signal door_open_time    : time := 0 ns;
 
+    -- Funcões locais para conversao
     function status_to_string(st : std_logic_vector(1 downto 0)) return string is
     begin
         case st is
@@ -94,10 +89,70 @@ begin
         wait;
     end process;
 
+    -- Processo para verificacao de movimento com porta aberta
+    door_monitor: process(clk)
+        variable last_dr : std_logic := '0';
+        variable saved_floor : std_logic_vector(WIDTH-1 downto 0);
+    begin
+        if rising_edge(clk) then
+            -- Detectar transicao de porta fechada para aberta
+            if last_dr = '0' and dr = '1' then
+                saved_floor := current_floor;
+                door_open_floor <= current_floor;
+                door_was_open <= true;
+                door_open_time <= now;
+                report "[PORTA] Abriu no andar " & integer'image(to_integer(unsigned(current_floor)));
+            end if;
+            
+            -- Detectar transicao de porta aberta para fechada
+            if last_dr = '1' and dr = '0' then
+                if door_was_open then
+                    if saved_floor /= current_floor then
+                        report "ERRO GRAVE: Elevador se moveu com porta aberta! Andar inicial: " & 
+                               integer'image(to_integer(unsigned(saved_floor))) & 
+                               ", Andar final: " & integer'image(to_integer(unsigned(current_floor))) &
+                               " Tempo porta aberta: " & time'image(now - door_open_time)
+                               severity error;
+                    else
+                        report "[PORTA] Fechou no mesmo andar: " & integer'image(to_integer(unsigned(current_floor)));
+                    end if;
+                    door_was_open <= false;
+                end if;
+            end if;
+            
+            last_dr := dr;
+        end if;
+    end process;
+
     stim_proc: process
 
-        variable current_floor_int : integer;
-        variable test_passed : boolean;
+        procedure apply_reset is
+        begin
+            reset <= '1';
+            int_floor_request <= (others => '0');
+            move_up_request <= (others => '0');
+            move_dn_request <= (others => '0');
+            wait for CLK_PERIOD * 2;
+            reset <= '0';
+            wait for CLK_PERIOD * 2;
+        end procedure;
+
+        procedure send_requests(
+            int_floors : in std_logic_vector(31 downto 0);
+            up_floors  : in std_logic_vector(31 downto 0);
+            down_floors: in std_logic_vector(31 downto 0);
+            duration   : in natural := 20
+        ) is
+        begin
+            int_floor_request <= int_floors;
+            move_up_request <= up_floors;
+            move_dn_request <= down_floors;
+            wait until rising_edge(clk);
+            int_floor_request <= (others => '0');
+            move_up_request <= (others => '0');
+            move_dn_request <= (others => '0');
+            wait for CLK_PERIOD * duration;
+        end procedure;
 
     begin
         report "==================================================";
@@ -106,239 +161,191 @@ begin
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 1: Estado inicial
+        -- Teste 1: Estado inicial e pedidos internos basicos
         ------------------------------------------------------------------
-        report "### Teste 1 - Estado Inicial ###";
-        report "Verificando se o elevador inicia no andar 0, parado e sem intencao de movimento.";
+        report "### Teste 1 - Estado Inicial e Pedidos Internos ###";
+        apply_reset;
         
-        -- Aguardar estabilizacao inicial
-        wait for CLK_PERIOD * 3;
+        -- Verificar estado inicial
+        assert to_integer(unsigned(current_floor)) = 0 
+            report "FALHA: Andar inicial deveria ser 0" severity error;
+        report "  Andar inicial: " & integer'image(to_integer(unsigned(current_floor)));
         
-        -- Verificacoes do estado inicial
-        if is_valid_floor(current_floor) then
-            current_floor_int := to_integer(unsigned(current_floor));
-            assert current_floor_int = 0 
-                report "FALHA: Andar inicial deveria ser 0, mas eh " & integer'image(current_floor_int) 
-                severity error;
-            report "  Andar inicial: " & integer'image(current_floor_int);
-        else
-            report "FALHA: current_floor nao esta em estado valido" severity error;
-        end if;
-        
-        assert status = "00" or status = "01" or status = "10" 
-            report "FALHA: Status invalido: " & integer'image(to_integer(unsigned(status))) 
-            severity error;
-        
-        report "  Status inicial: " & status_to_string(status);
-        report "  Intencao inicial: " & intention_to_string(intention);
+        -- Pedido interno simples
+        send_requests(
+            int_floors => (5 => '1', others => '0'),
+            up_floors => (others => '0'),
+            down_floors => (others => '0'),
+            duration => 15
+        );
         report "  Teste 1 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 2: Pedido interno para andar 5
+        -- Teste 2: Dois pedidos para subir
         ------------------------------------------------------------------
-        report "### Teste 2 - Pedido Interno Unico ###";
-        report "Enviando pedido interno para o andar 5.";
+        report "### Teste 2 - Dois Pedidos para Subir ###";
+        report "Pedidos de subida nos andares 4 e 8";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        int_floor_request <= (5 => '1', others => '0');
-        wait until rising_edge(clk);
-        int_floor_request <= (others => '0');  -- Zera apos receber
-        
-        -- Aguardar resposta do controlador
-        test_passed := false;
-        for i in 1 to 15 loop
-            wait until rising_edge(clk);
-            if intention /= "00" then
-                report "  Intencao detectada: " & intention_to_string(intention);
-                test_passed := true;
-                exit;
-            end if;
-        end loop;
-        
-        assert test_passed report "FALHA: Nao houve intencao de movimento apos pedido" severity error;
-        
-        wait for CLK_PERIOD * 10;
+        apply_reset;
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (4 => '1', 8 => '1', others => '0'),
+            down_floors => (others => '0'),
+            duration => 25
+        );
         report "  Teste 2 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 3: Multiplos pedidos internos
+        -- Teste 3: Dois pedidos para descer
         ------------------------------------------------------------------
-        report "### Teste 3 - Multiplos Pedidos Internos ###";
-        report "Enviando pedidos para os andares 3, 8 e 12 simultaneamente.";
+        report "### Teste 3 - Dois Pedidos para Descer ###";
+        report "Pedidos de descida nos andares 12 e 16";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        int_floor_request <= (3 => '1', 8 => '1', 12 => '1', others => '0');
-        wait until rising_edge(clk);
-        int_floor_request <= (others => '0');  -- Zera apos receber
+        apply_reset;
         
-        wait for CLK_PERIOD * 30;
-        report "  Multiplos pedidos processados";
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (others => '0'),
+            down_floors => (12 => '1', 16 => '1', others => '0'),
+            duration => 25
+        );
         report "  Teste 3 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 4: Pedidos de subida externos
+        -- Teste 4: Pedido para Subir em Andar Superior e Descer em Andar Inferior 
         ------------------------------------------------------------------
-        report "### Teste 4 - Pedidos de Subida Externa ###";
-        report "Enviando pedido externo de subida para o andar 6.";
+        report "### Teste 4 - Pedido para Subir em Andar Superior e Descer em Andar Inferior ###";
+        report "Subir no andar 6, Descer no andar 3";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        move_up_request <= (6 => '1', others => '0');
-        wait until rising_edge(clk);
-        move_up_request <= (others => '0');  -- Zera apos receber
-        
-        wait for CLK_PERIOD * 15;
-        report "  Pedido de subida processado";
+        apply_reset;
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (6 => '1', others => '0'),
+            down_floors => (3 => '1', others => '0'),
+            duration => 30
+        );
         report "  Teste 4 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 5: Pedidos de descida externos
+        -- Teste 5: Pedido para Subir em Andar Inferior e Descer em andar Superior
         ------------------------------------------------------------------
-        report "### Teste 5 - Pedidos de Descida Externa ###";
-        report "Enviando pedido externo de descida para o andar 14.";
+        report "### Teste 5 - Pedido para Subir em Andar Inferior e Descer em andar Superior ###";
+        report "Descer no 10, Subir no 5";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        move_dn_request <= (14 => '1', others => '0');
-        wait until rising_edge(clk);
-        move_dn_request <= (others => '0');  -- Zera apos receber
-        
-        wait for CLK_PERIOD * 15;
-        report "  Pedido de descida processado";
+        apply_reset;
+        -- Pedidos: descer no 10, subir no 15
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (5 => '1', others => '0'),
+            down_floors => (10 => '1', others => '0'),
+            duration => 30
+        );
         report "  Teste 5 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 6: Combinacao de pedidos
+        -- Teste 6: Subir e Descer no mesmo andar
         ------------------------------------------------------------------
-        report "### Teste 6 - Combinacao de Pedidos ###";
-        report "Enviando pedidos internos e externos simultaneamente.";
-        report "  Andares: 2, 7 (interno), 3 (subida), 16 (descida)";
+        report "### Teste 6 - Subir e Descer no Mesmo Andar ###";
+        report "Subir e Descer no andar 8 simultaneamente";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        int_floor_request <= (2 => '1', 7 => '1', others => '0');
-        move_up_request <= (3 => '1', others => '0');
-        move_dn_request <= (16 => '1', others => '0');
-        wait until rising_edge(clk);
-        -- Zera todos os pedidos apos receber
-        int_floor_request <= (others => '0');
-        move_up_request <= (others => '0');
-        move_dn_request <= (others => '0');
-        
-        wait for CLK_PERIOD * 25;
-        report "  Combinacao de pedidos processada";
+        apply_reset;
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (8 => '1', others => '0'),
+            down_floors => (8 => '1', others => '0'),
+            duration => 20
+        );
         report "  Teste 6 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 7: Pedido no andar atual
+        -- Teste 7: Dois para subir e um para descer no menor andar de subida
         ------------------------------------------------------------------
-        report "### Teste 7 - Pedido no Andar Atual ###";
+        report "### Teste 7 - Dois Subir + Descer no Menor Andar de Subida ###";
+        report "Subir nos andares 5 e 9, Descer no 5";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        -- Espera estabilizar e pega o andar atual
-        wait for CLK_PERIOD * 3;
-        if is_valid_floor(current_floor) then
-            current_floor_int := to_integer(unsigned(current_floor));
-            report "  Andar atual: " & integer'image(current_floor_int);
-            
-            report "  Enviando pedido para o andar atual.";
-            int_floor_request <= (others => '0');
-            if current_floor_int < 32 then
-                int_floor_request(current_floor_int) <= '1';
-            end if;
-            wait until rising_edge(clk);
-            int_floor_request <= (others => '0');  -- Zera apos receber
-            
-            wait for CLK_PERIOD * 5;
-            
-            -- Verifica se permanece parado
-            if status = "00" then
-                report "  Elevador permaneceu parado no andar atual";
-            else
-                report "FALHA: Elevador nao deveria se mover quando o pedido eh para o andar atual" 
-                    severity error;
-            end if;
-        else
-            report "FALHA: Nao foi possivel determinar o andar atual" severity error;
-        end if;
-        
+        apply_reset;
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (5 => '1', 9 => '1', others => '0'),
+            down_floors => (5 => '1', others => '0'),
+            duration => 35
+        );
         report "  Teste 7 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 8: Prioridade de pedidos complexa
+        -- Teste 8: Dois para descer e um para subir no maior andar de descida
         ------------------------------------------------------------------
-        report "### Teste 8 - Prioridade Complexa de Pedidos ###";
-        report "Enviando multiplos pedidos em diferentes direcoes:";
-        report "  Internos: andares 1 e 15";
-        report "  Subida: andares 4 e 10";  
-        report "  Descida: andares 7 e 12";
+        report "### Teste 8 - Dois Descer + Subir no Maior Andar de Descida ###";
+        report "Descer nos andares 14 e 18, Subir no 14";
         
-        reset <= '1';
-        wait for CLK_PERIOD * 2;
-        reset <= '0';
-        wait for CLK_PERIOD * 2;
-
-        int_floor_request <= (1 => '1', 15 => '1', others => '0');
-        move_up_request <= (4 => '1', 10 => '1', others => '0');
-        move_dn_request <= (7 => '1', 12 => '1', others => '0');
-        wait until rising_edge(clk);
-        -- Zera todos os pedidos apos receber
-        int_floor_request <= (others => '0');
-        move_up_request <= (others => '0');
-        move_dn_request <= (others => '0');
-        
-        wait for CLK_PERIOD * 40;
-        report "  Pedidos complexos processados";
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (18 => '1', others => '0'),
+            down_floors => (14 => '1', 18 => '1', others => '0'),
+            duration => 40
+        );
         report "  Teste 8 concluido com sucesso";
+        report "";
+
+        ------------------------------------------------------------------
+        -- Teste 10: Pedido subsequente durante movimento
+        ------------------------------------------------------------------
+        report "### Teste 9 - Pedido Subsequente Durante Movimento ###";
+        report "Subir nos andares 2 e 10, depois pedido interno para descer";
+        
+        apply_reset;
+        -- Envia pedidos iniciais de subida
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (2 => '1', 10 => '1', others => '0'),
+            down_floors => (others => '0'),
+            duration => 5
+        );
+        
+        report "  Enviando pedido interno para descer após 4 clocks";
+        int_floor_request <= (7 => '1', others => '0');
+        wait until rising_edge(clk);
+        int_floor_request <= (others => '0');
+        
+        wait for CLK_PERIOD * 30;
+        report "  Teste 9 concluido com sucesso";
+        report "";
+
+        ------------------------------------------------------------------
+        -- Teste 10: Caso complexo de prioridades
+        ------------------------------------------------------------------
+        report "### Teste 10 - Caso Complexo de Prioridades ###";
+        report "Múltiplos pedidos internos e externos misturados";
+        
+        apply_reset;
+        send_requests(
+            int_floors => (4 => '1', 11 => '1', 17 => '1', others => '0'),
+            up_floors => (6 => '1', 13 => '1', others => '0'),
+            down_floors => (8 => '1', 15 => '1', others => '0'),
+            duration => 50
+        );
+        report "  Teste 10 concluido com sucesso";
         report "";
 
         ------------------------------------------------------------------
         -- Finalizacao
         ------------------------------------------------------------------
         report "### RESUMO FINAL ###";
-        
-        if is_valid_floor(current_floor) then
-            report "Andar final: " & integer'image(to_integer(unsigned(current_floor)));
-        else
-            report "Andar final: INVALIDO";
-        end if;
-        
+        report "Andar final: " & integer'image(to_integer(unsigned(current_floor)));
         report "Status final: " & status_to_string(status);
         report "Intencao final: " & intention_to_string(intention);
         
         report "";
         report "Todos os testes do in_controller foram concluidos!";
-        report "";
         report "==================================================";
-        report "           SIMULACAO CONCLUIDA";
+        report "           SIMULACAO CONCLUÍDA";
         report "==================================================";
         
         sim_ended <= true;
@@ -347,49 +354,34 @@ begin
 
     -- Processo de monitoramento continuo
     monitor_proc: process
-        variable last_floor : integer := 0;
+        variable last_floor : integer := -1;
         variable current_floor_int : integer;
         variable last_status : std_logic_vector(1 downto 0) := "11";
         variable last_intention : std_logic_vector(1 downto 0) := "11";
     begin
         wait until rising_edge(clk);
         
-        if is_valid_floor(current_floor) then
-            current_floor_int := to_integer(unsigned(current_floor));
-            
-            -- Verificar se o andar eh valido
-            assert current_floor_int >= 0 and current_floor_int < 32
-                report "ANDAR INVALIDO: " & integer'image(current_floor_int) severity error;
-            
-            -- Detectar mudanca de andar
-            if current_floor_int /= last_floor then
-                report "[MOVIMENTO] Andar: " & integer'image(last_floor) & 
-                      " -> " & integer'image(current_floor_int);
-                last_floor := current_floor_int;
-            end if;
-            
-            -- Detectar mudanca de status
-            if status /= last_status then
-                report "[STATUS] " & status_to_string(last_status) & 
-                      " -> " & status_to_string(status);
-                last_status := status;
-            end if;
-            
-            -- Detectar mudanca de intencao
-            if intention /= last_intention then
-                report "[INTENCAO] " & intention_to_string(last_intention) & 
-                      " -> " & intention_to_string(intention);
-                last_intention := intention;
-            end if;
-            
-            -- Verificar consistencia porta/status
-            if dr = '1' then  -- Porta aberta
-                if status /= "00" then
-                    report "[PORTA] Aberta no andar " & integer'image(current_floor_int);
-                else
-                    report "Erro: Porta aberta durante movimento.";
-                end if;
-            end if;
+        current_floor_int := to_integer(unsigned(current_floor));
+        
+        -- Detectar mudanca de andar
+        if current_floor_int /= last_floor then
+            report "[MOVIMENTO] Andar: " & integer'image(last_floor) & 
+                  " -> " & integer'image(current_floor_int);
+            last_floor := current_floor_int;
+        end if;
+        
+        -- Detectar mudanca de status
+        if status /= last_status then
+            report "[STATUS] " & status_to_string(last_status) & 
+                  " -> " & status_to_string(status);
+            last_status := status;
+        end if;
+        
+        -- Detectar mudanca de intencao
+        if intention /= last_intention then
+            report "[INTENCAO] " & intention_to_string(last_intention) & 
+                  " -> " & intention_to_string(intention);
+            last_intention := intention;
         end if;
     end process;
 

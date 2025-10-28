@@ -183,6 +183,8 @@ begin
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
+                status_int := "00";
+                status <= "00";
             else  -- CASO NÃO ESTIVER EM UM ANDAR DESTINO
                 op_int <= '0';
                 cl_int <= '1';
