@@ -49,9 +49,9 @@ begin
       cl    => cl,
       q     => dr_int);
 
-  up_int <= up and not dr_int;
-  dn_int <= dn and not dr_int;
-  dr <= dr_int;
+    up_int <= up and not dr_int;
+    dn_int <= dn and not dr_int;
+    dr <= dr_int;
 
   move_counter_inst : move_counter
     generic map (w => w)

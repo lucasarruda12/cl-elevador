@@ -30,11 +30,15 @@ entity scheduler is
 end scheduler;
 
 architecture arch of scheduler is
+  signal going_up_int    : call_vector((2**w)-1 downto 0);
+  signal going_down_int  : call_vector((2**w)-1 downto 0);
+
   signal rej_going_up    : call_vector((2**w)-1 downto 0);
   signal rej_going_down  : call_vector((2**w)-1 downto 0);
 
   signal rej_going_up_int : call_vector((2**w)-1 downto 0);
   signal rej_going_down_int : call_vector((2**w)-1 downto 0);
+
   signal el1_going_up_int : call_vector((2**w)-1 downto 0);
   signal el1_going_down_int : call_vector((2**w)-1 downto 0);
   signal el2_going_up_int : call_vector((2**w)-1 downto 0);
@@ -82,27 +86,18 @@ begin
     -- em um vetor de chamadas
     gen_new_calls : for i in 0 to ((2**w)-1) generate
     begin
-        rej_going_up_int(i).active     <= going_up(i);
-        rej_going_up_int(i).score      <= "000000";
-        rej_going_up_int(i).respondent <= "00";
+        going_up_int(i).score      <= "000000";
+        going_up_int(i).respondent <= "00";
+        going_up_int(i).active     <= '1'
+          when going_up(i)='1' or rej_going_up(i).active='1'
+          else '0';
 
-        rej_going_down_int(i).active     <= going_down(i);
-        rej_going_down_int(i).score      <= "000000";
-        rej_going_down_int(i).respondent <= "00";
-    end generate; 
 
-    -- Segundo trabalho é recolocar os rejeitados do clock passado
-    gen_rej_calls : for i in 0 to (2**w)-1 generate
-    begin
-        rej_going_up_int(i).active     
-        <= '1'
-           when rej_going_up(i).active='1' 
-           else rej_going_up_int(i).active;
-
-        rej_going_down_int(i).active
-        <= '1'
-           when rej_going_down(i).active='1' 
-           else rej_going_down_int(i).active;
+        going_down_int(i).score      <= "000000";
+        going_down_int(i).respondent <= "00";
+        going_down_int(i).active <= '1'
+          when going_down(i)='1' or rej_going_down(i).active='1'
+          else '0';
     end generate; 
 
     -- Agora já dá pra ir passando isso pra frente
@@ -114,14 +109,13 @@ begin
       current_intention => el1_intention,
       my_resp_id        => "01",
 
-      going_up          => rej_going_up_int,
-      going_down        => rej_going_down_int,
+      going_up          => going_up_int,
+      going_down        => going_down_int,
 
       going_up_caught   => el1_going_up_int,
       going_down_caught => el1_going_down_int
       );
 
-    -- Agora já dá pra ir passando isso pra frente
     el2 : call_catcher
       generic map (w => w)
       port map (
