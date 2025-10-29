@@ -26,9 +26,9 @@ architecture arch of in_controller is
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal current_floor_int   : std_logic_vector(w-1 downto 0) := (others => '0');
-    signal next_floor_int      : integer := 0;
+    signal next_floor_int      : integer;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
-    signal at_destination_int      : boolean;
+    signal at_destination_int  : boolean;
 
     component simple_elevator is
         generic (w : natural := 5);
@@ -59,10 +59,10 @@ architecture arch of in_controller is
         port (
             move_up_request   : in std_logic_vector (31 downto 0);
             move_dn_request   : in std_logic_vector (31 downto 0);
-            next_floor        : in std_logic_vector(w-1 downto 0);
+            next_floor        : in integer;
             status            : in std_logic_vector(1 downto 0);
             intention         : in std_logic_vector(1 downto 0);
-            at_destination    : out std_logic
+            at_destination    : out boolean
         );
     
     end component;
@@ -95,7 +95,7 @@ begin
     current_floor <= current_floor_int;
     intention <= intention_int;
     status <= status_int;
-    
+
     at_destination_inst: at_destination
     generic map(w => w)
     port map(
