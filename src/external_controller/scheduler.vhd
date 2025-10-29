@@ -46,6 +46,9 @@ architecture arch of scheduler is
   signal el3_going_up_int : call_vector((2**w)-1 downto 0);
   signal el3_going_down_int : call_vector((2**w)-1 downto 0);
 
+  signal state : std_logic := '0'; -- Checando subidas ('1') ou descidas ('0')
+  signal next_state : std_logic := '1'; 
+
   component call_catcher is
     generic (w : natural := 5);
     port (
@@ -65,6 +68,7 @@ architecture arch of scheduler is
   component call_dispatcher is
     generic (w : natural := 5);
     port (
+      clk               : std_logic;
       going_up_caught   : in call_vector((2**w)-1 downto 0);
       going_down_caught : in call_vector((2**w)-1 downto 0);
 
@@ -82,6 +86,8 @@ architecture arch of scheduler is
     );
   end component;
 begin
+    next_state <= not state;
+
     -- Primeiro trabalho é transformar o vetor do teclado
     -- em um vetor de chamadas
     gen_new_calls : for i in 0 to ((2**w)-1) generate
@@ -149,6 +155,7 @@ begin
     dispatcher : call_dispatcher
       generic map (w => w)
       port map (
+        clk               => clk,
         going_up_caught   => el3_going_up_int,
         going_down_caught => el3_going_down_int,
 
