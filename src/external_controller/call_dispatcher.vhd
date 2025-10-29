@@ -30,10 +30,10 @@ architecture arch of call_dispatcher is
 begin
   gen : for i in 0 to (2**w)-1 generate
   begin
-    rej_going_up(i) <= (going_up_caught(i).active, "000000", "00") when
+    rej_going_up(i) <= (going_up_caught(i).active, (others => '0'), "00") when
                        (going_up_caught(i).respondent = "00"
                        or current_direction='0') -- estou checando as descidas
-                       else ('0', "000000", "00");
+                       else ('0', (others => '0'), "00");
       
     el1_going_up(i) <= going_up_caught(i).active when
                        (going_up_caught(i).respondent = "01"
@@ -50,10 +50,10 @@ begin
                        and current_direction='1')
                        else '0';
 
-    rej_going_down(i) <= (going_down_caught(i).active, "000000", "00") when
+    rej_going_down(i) <= (going_down_caught(i).active, (others => '0'), "00") when
                        (going_down_caught(i).respondent = "00"
                        or current_direction='1') -- estou checando as subidas
-                       else ('0', "000000", "00");
+                       else ('0', (others => '0'), "00");
       
     el1_going_down(i) <= going_down_caught(i).active when
                        (going_down_caught(i).respondent = "01"

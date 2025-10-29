@@ -92,14 +92,14 @@ begin
     -- em um vetor de chamadas
     gen_new_calls : for i in 0 to ((2**w)-1) generate
     begin
-        going_up_int(i).score      <= "000000";
+        going_up_int(i).score      <= (others => '0');
         going_up_int(i).respondent <= "00";
         going_up_int(i).active     <= '1'
           when going_up(i)='1' or rej_going_up(i).active='1'
           else '0';
 
 
-        going_down_int(i).score      <= "000000";
+        going_down_int(i).score      <= (others => '0');
         going_down_int(i).respondent <= "00";
         going_down_int(i).active <= '1'
           when going_down(i)='1' or rej_going_down(i).active='1'
