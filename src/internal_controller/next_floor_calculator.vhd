@@ -7,18 +7,16 @@ entity next_floor_calculator is
     port (
         up             : in std_logic;
         dn             : in std_logic;
-        current_floor  : in std_logic_vector(w-1 downto 0);
-        next_floor     : out integer
+        current_floor  : integer range 0 to 31;
+        next_floor     : out integer range 0 to 31
     );
 end next_floor_calculator;
 
 architecture arch of next_floor_calculator is
-    signal current_floor_reg : integer := 0;
 begin
-    current_floor_reg <= to_integer(unsigned(current_floor));
 
-    next_floor <= current_floor_reg + 1 when (up = '1') else
-                  current_floor_reg - 1 when (dn = '1') else
-                  current_floor_reg;          
+    next_floor <= current_floor + 1 when (up = '1') else
+                  current_floor - 1 when (dn = '1') else
+                  current_floor;          
 
 end arch;

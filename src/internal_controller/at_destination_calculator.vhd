@@ -5,21 +5,22 @@ use IEEE.numeric_std.all;
 entity at_destination_calculator is
   generic (w : natural := 5);
   port (
-    move_up_request   : in std_logic_vector (31 downto 0);
-    move_dn_request   : in std_logic_vector (31 downto 0);
-    next_floor        : in integer := 0;
-    status            : in std_logic_vector(1 downto 0);
-    intention         : in std_logic_vector(1 downto 0);
-    at_destination    : out boolean
+    move_up_request : in std_logic_vector (31 downto 0);
+    move_dn_request : in std_logic_vector (31 downto 0);
+    next_floor      : in integer range 0 to 31 := 0;
+    status          : in std_logic_vector(1 downto 0);
+    intention       : in std_logic_vector(1 downto 0);
+    no_calls_left   : out boolean;
+    at_destination  : out boolean
   );
 end at_destination_calculator;
 
 architecture arch of at_destination_calculator is
-  signal floor_index        : integer range 0 to 31;
-  signal move_up_var        : std_logic_vector(31 downto 0);
-  signal move_dn_var        : std_logic_vector(31 downto 0);
-  signal left_floors        : std_logic_vector(31 downto 0);
-  signal zeros              : std_logic_vector(31 downto 0) := (others => '0');
+  signal floor_index : integer range 0 to 31;
+  signal move_up_var : std_logic_vector(31 downto 0);
+  signal move_dn_var : std_logic_vector(31 downto 0);
+  signal left_floors : std_logic_vector(31 downto 0);
+  signal zeros       : std_logic_vector(31 downto 0) := (others => '0');
 
 begin
   -- Calculando floor_index com limite entre 0 e 31
@@ -42,6 +43,8 @@ begin
                        move_dn_var(i) when (intention = "01" and i >= floor_index) else
                        '0';
   end generate;
+
+  no_calls_left <= left_floors = zeros;
 
   -- Determinando se estamos no destino
   at_destination <= 
