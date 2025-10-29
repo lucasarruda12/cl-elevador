@@ -3,10 +3,11 @@ use IEEE.std_logic_1164.all;
 
 entity door is
   port (
-    clk : std_logic;
-    op : std_logic;
-    cl : std_logic;
-    q   : out std_logic);
+    clk   : std_logic;
+    reset : std_logic := '0';
+    op    : std_logic;
+    cl    : std_logic;
+    q     : out std_logic := '0');
 end door;
 
 architecture arch of door is
@@ -18,11 +19,12 @@ begin
     else '0' when (cl='1')
     else '1' when (op='1');
 
-  process(clk)
+  process(clk, reset)
   begin
-    if (clk'event and clk='1') then
-      q_int <= prox_q;
-      q     <= prox_q;
+    if rising_edge(reset) then
+      q <= '0';
+    elsif rising_edge(clk) then
+      q <= prox_q;
     end if;
   end process;
 end arch;

@@ -16,13 +16,14 @@ end score_calc;
 
 architecture arch of score_calc is
   signal dist : std_logic_vector(w-1 downto 0);
+  constant MAX_VAL : unsigned(w-1 downto 0) := (others => '1');
 begin
   -- [TODO] Isso ficou tão feio...
   -- É uma forma gambiarrenta de não precisar implementar
   -- um subtrator para os std_logic_vector. Se der tempo,
   -- seria legal voltar aqui e criar vergonha na cara.
-  dist <= std_logic_vector(unsigned(current_floor) - unsigned(target_floor)) when current_floor > target_floor else
-          std_logic_vector(unsigned(target_floor) - unsigned(current_floor)) when target_floor > current_floor else
+  dist <= std_logic_vector(MAX_VAL - (unsigned(current_floor) - unsigned(target_floor))) when current_floor > target_floor else
+          std_logic_vector(MAX_VAL - (unsigned(target_floor) - unsigned(current_floor))) when target_floor > current_floor else
           (others => '0');
 
   score <= 
