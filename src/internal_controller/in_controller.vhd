@@ -28,6 +28,7 @@ architecture arch of in_controller is
     signal current_floor_int   : std_logic_vector(w-1 downto 0) := (others => '0');
     signal next_floor_int      : integer := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
+    signal at_destination_int      : boolean;
 
     component simple_elevator is
         generic (w : natural := 5);
@@ -53,8 +54,20 @@ architecture arch of in_controller is
         );
     end component;
 
-begin
+    component at_destination is
+        generic (w : natural := 5);
+        port (
+            move_up_request   : in std_logic_vector (31 downto 0);
+            move_dn_request   : in std_logic_vector (31 downto 0);
+            next_floor        : in std_logic_vector(w-1 downto 0);
+            status            : in std_logic_vector(1 downto 0);
+            intention         : in std_logic_vector(1 downto 0);
+            at_destination    : out std_logic
+        );
+    
+    end component;
 
+begin
     -- Mecanismo do elevador
     simple_elevator_inst: simple_elevator
         generic map(w => w)
@@ -82,11 +95,25 @@ begin
     current_floor <= current_floor_int;
     intention <= intention_int;
     status <= status_int;
+    
+    at_destination_inst: at_destination
+    generic map(w => w)
+    port map(
+        move_up_request   => move_up_request,
+        move_dn_request   => move_dn_request,
+        next_floor        => next_floor_int,
+        status            => status_int,
+        intention         => intention_int,
+        at_destination    => at_destination_int
+    );
+
+    current_floor <= current_floor_int;
+    intention <= intention_int;
+    status <= status_int;
 
     process(clk, reset)
         variable current_floor_var   : integer;
         variable added_calls         : integer;
-        variable at_destination      : boolean;
         variable call_exists         : boolean;
         variable left_floors         : std_logic_vector(31 downto 0);
         variable move_up_request_var : std_logic_vector(31 downto 0) := (others => '0');
@@ -133,57 +160,7 @@ begin
 -- Ele checa sempre se o PROXIMO ANDAR será um andar com chamada ativa
 -- Ao final dessa seção a variavel at_destination nos informará se o elevador deve parar e abrir a porta ou não!
                   
-            if intention_int = "10" and move_up_request_var(next_floor_int) = '1' then
-                if status_var = "01" then -- INTENÇÃO: SUBIR,   STATUS: DESCER
-                    move_up_request_var(next_floor_int) := '0';
-                    left_floors := std_logic_vector(resize(unsigned(move_up_request_var(next_floor_int downto 0)), 32));
-                    at_destination := left_floors = zeros;
-                    if not (left_floors = zeros) then
-                        move_up_request_var(next_floor_int) := '1';
-                        at_destination := (left_floors = zeros);
-                    else
-                        move_up_request_var(next_floor_int) := '0';
-                        move_dn_request_var(next_floor_int) := '0';
-                        at_destination := left_floors = zeros;
-                    end if;
-                elsif status_var = "10" then -- INTENÇÃO: SUBIR, STATUS: SUBIR
-                    move_up_request_var(next_floor_int) := '0';
-                    move_dn_request_var(next_floor_int) := '0';
-                    left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_int)), 32));
-                    at_destination := true;
-                end if;
-
-            elsif intention_int = "01" and move_dn_request_var(next_floor_int) = '1' then
-                if status_var = "10" then -- INTENÇÃO: DESCER, STATUS SUBIR
-                    move_dn_request_var(next_floor_int) := '0'; 
-                    left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(31 downto next_floor_int)), 32));
-                    at_destination := left_floors = zeros;
-                    if not (left_floors = zeros) then
-                        move_dn_request_var(next_floor_int) := '1';
-                        at_destination := false;
-                    else
-                        move_up_request_var(next_floor_int) := '0';
-                        move_dn_request_var(next_floor_int) := '0';
-                        at_destination := true;
-                    end if;
-                elsif status_var = "01" then -- INTENÇÃO: DESCER, STATUS: DESCER
-                        move_up_request_var(next_floor_int) := '0';
-                        move_dn_request_var(next_floor_int) := '0';
-                        left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_int downto 0)), 32));
-                        at_destination := true;
-                end if;
-            elsif intention_int = "00" then -- INTENÇÃO: SEM INTENÇÃO -- TEM PROBLEMA NESSE ELSE AQUI
-                if move_up_request_var(next_floor_int) = '1' or move_dn_request_var(next_floor_int) = '1' then
-                    at_destination := true;
-                    move_up_request_var(next_floor_int) := '0';
-                    move_dn_request_var(next_floor_int) := '0';
-                else
-                    at_destination := false;
-                end if;
-            else
-                at_destination := false;
-            end if;
-
+            
 
             -- depois de um ponto o move_up_request_var do proximo é zerado, o status é 00 então, ele segue o else
             -- o status nn deve ser colocado como 0 ao chegar num destino, só deve ser colocado 0 quando não houverem mais chamadas
@@ -192,11 +169,13 @@ begin
 
 
               
-            if at_destination then -- SEÇÃO RESPONSÁVEL POR PARAR E ABRIR A PORTA NO ANDAR DESTINO
+            if at_destination_int then -- SEÇÃO RESPONSÁVEL POR PARAR E ABRIR A PORTA NO ANDAR DESTINO
                 op_int <= '1';
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
+                move_dn_request_var(next_floor_int) := '0';
+                move_up_request_var(next_floor_int) := '0';
                 move_up_request_int <= move_up_request_var;
                 move_dn_request_int <= move_dn_request_var;
 
