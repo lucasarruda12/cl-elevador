@@ -6,16 +6,16 @@ use IEEE.numeric_std.all;
 entity move_counter is
   generic (w : natural := 5);
   port (
-    clk   : in  std_logic;
+    clk   : in std_logic;
     reset : in std_logic := '0';
-    up    : in  std_logic;
-    dn    : in  std_logic;
-    q     : out  std_logic_vector(w-1 downto 0));
+    up    : in std_logic;
+    dn    : in std_logic;
+    q     : out integer range 0 to 31);
 end move_counter;
 
 architecture arch of move_counter is
-  signal q_int: unsigned(w-1 downto 0) := (others => '0');
-  signal prox_q: unsigned(w-1 downto 0) := (others => '0');
+  signal q_int: integer range 0 to 31 := 0;
+  signal prox_q: integer range 0 to 31 := 0;
 begin
   prox_q <= 
     q_int when up = dn 
@@ -26,12 +26,12 @@ begin
   process(clk, reset)
   begin
     if rising_edge(reset) then
-      q_int <= (others => '0');
+      q_int <= 0;
     elsif rising_edge(clk) then
       q_int <= prox_q;
     end if;
   end process;
 
-  q <= std_logic_vector(q_int);
+  q <= q_int;
   
 end arch;

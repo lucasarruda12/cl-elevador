@@ -8,7 +8,6 @@ end entity simple_elevator_tb;
 architecture sim of simple_elevator_tb is
 
     component simple_elevator
-        generic (w : natural := 5);
         port (
             clk            : in  std_logic;
             reset          : in  std_logic;
@@ -17,12 +16,11 @@ architecture sim of simple_elevator_tb is
             up             : in  std_logic; -- move up
             dn             : in  std_logic; -- move down
             dr             : out std_logic; -- door status (1=open, 0=closed)
-            current_floor  : out std_logic_vector(w-1 downto 0)
+            current_floor  : out integer range 0 to 31
         );
     end component;
 
     constant CLK_PERIOD : time := 10 ns;
-    constant WIDTH : natural := 5;
     
     signal clk           : std_logic := '0';
     signal reset         : std_logic := '0';
@@ -31,7 +29,7 @@ architecture sim of simple_elevator_tb is
     signal up            : std_logic := '0';
     signal dn            : std_logic := '0';
     signal dr            : std_logic;
-    signal current_floor : std_logic_vector(WIDTH-1 downto 0);
+    signal current_floor : integer range 0 to 31 := 0;
     
     signal sim_ended : boolean := false;
 
@@ -39,7 +37,6 @@ begin
 
     -- Instancia do Unit Under Test (UUT)
     UUT: simple_elevator
-        generic map (w => WIDTH)
         port map (
             clk   => clk,
             reset => reset,
@@ -84,16 +81,12 @@ begin
         
         assert dr = '0' report "FALHA: Porta deveria estar fechada inicialmente" severity error;
         
-        if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-            current_floor_int := to_integer(unsigned(current_floor));
-            assert current_floor_int = 0 
-                report "FALHA: Andar inicial deveria ser 0, mas eh " & integer'image(current_floor_int) 
-                severity error;
-            report "  Porta inicial: FECHADA";
-            report "  Andar inicial: " & integer'image(current_floor_int);
-        else
-            report "  AVISO: Aguardando inicializacao do current_floor" severity warning;
-        end if;
+        current_floor_int := current_floor;
+        assert current_floor_int = 0 
+            report "FALHA: Andar inicial deveria ser 0, mas eh " & integer'image(current_floor_int) 
+            severity error;
+        report "  Porta inicial: FECHADA";
+        report "  Andar inicial: " & integer'image(current_floor_int);
         
         report "  Teste 1 concluido com sucesso";
         report "";
@@ -152,16 +145,14 @@ begin
         
         for i in 0 to 2 loop
             wait until rising_edge(clk);
-            if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-                expected_floor := i;
-                current_floor_int := to_integer(unsigned(current_floor));
-                assert current_floor_int = expected_floor
-                    report "FALHA no ciclo " & integer'image(i) & 
-                           ": Esperado=" & integer'image(expected_floor) & 
-                           ", Obtido=" & integer'image(current_floor_int)
-                    severity error;
-                report "  Andar atual: " & integer'image(current_floor_int);
-            end if;
+            expected_floor := i;
+            current_floor_int := current_floor;
+            assert current_floor_int = expected_floor
+                report "FALHA no ciclo " & integer'image(i) & 
+                    ": Esperado=" & integer'image(expected_floor) & 
+                    ", Obtido=" & integer'image(current_floor_int)
+                severity error;
+            report "  Andar atual: " & integer'image(current_floor_int);
         end loop;
         
         up <= '0';
@@ -204,16 +195,14 @@ begin
         
         for i in 3 downto 0 loop
             wait until rising_edge(clk);
-            if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-                expected_floor := i;
-                current_floor_int := to_integer(unsigned(current_floor));
-                assert current_floor_int = expected_floor
-                    report "FALHA no ciclo " & integer'image(3-i) & 
-                           ": Esperado=" & integer'image(expected_floor) & 
-                           ", Obtido=" & integer'image(current_floor_int)
-                    severity error;
-                report "  Andar atual: " & integer'image(current_floor_int);
-            end if;
+            expected_floor := i;
+            current_floor_int := current_floor;
+            assert current_floor_int = expected_floor
+                report "FALHA no ciclo " & integer'image(3-i) & 
+                        ": Esperado=" & integer'image(expected_floor) & 
+                        ", Obtido=" & integer'image(current_floor_int)
+                severity error;
+            report "  Andar atual: " & integer'image(current_floor_int);
         end loop;
         
         dn <= '0';
@@ -231,7 +220,7 @@ begin
         report "### Teste 7 - Conflito Up/Down ###";
         report "Ativando up e down simultaneamente (deve manter posicao).";
         
-        current_floor_int := to_integer(unsigned(current_floor));
+        current_floor_int := current_floor;
         up <= '1';
         dn <= '1';
         wait until rising_edge(clk);
@@ -239,7 +228,7 @@ begin
         dn <= '0';
         wait until rising_edge(clk);
         
-        assert to_integer(unsigned(current_floor)) = current_floor_int 
+        assert current_floor = current_floor_int 
             report "FALHA: Elevador nao deveria se mover com up e dn ativos" severity error;
         report "  Posicao mantida corretamente durante conflito";
         report "  Teste 7 concluido com sucesso";
@@ -262,13 +251,11 @@ begin
         up <= '0';
         wait until rising_edge(clk);
         
-        if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-            current_floor_int := to_integer(unsigned(current_floor));
-            assert current_floor_int = 1
-                report "FALHA: Deveria estar no andar 1, mas esta em " & integer'image(current_floor_int) 
-                severity error;
-            report "  Chegou ao andar 1";
-        end if;
+        current_floor_int := current_floor;
+        assert current_floor_int = 1
+            report "FALHA: Deveria estar no andar 1, mas esta em " & integer'image(current_floor_int) 
+            severity error;
+        report "  Chegou ao andar 1";
         
         -- Abrir porta
         report "  Abrindo porta...";
@@ -294,13 +281,11 @@ begin
         wait until rising_edge(clk);
         dn <= '0';
         wait until rising_edge(clk);
-        
-        if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-            assert to_integer(unsigned(current_floor)) = 0 
-                report "FALHA: Deveria estar no andar 0, mas esta em " & integer'image(to_integer(unsigned(current_floor))) 
-                severity error;
-            report "  Chegou ao andar 0";
-        end if;
+
+        assert current_floor = 0 
+            report "FALHA: Deveria estar no andar 0, mas esta em " & integer'image(current_floor) 
+            severity error;
+        report "  Chegou ao andar 0";
         
         report "  Sequencia completa executada com sucesso";
         report "  Teste 8 concluido com sucesso";
@@ -314,12 +299,6 @@ begin
         -- Finalizacao
         ------------------------------------------------------------------
         report "### RESUMO FINAL ###";
-        
-        if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-            report "Andar final: " & integer'image(to_integer(unsigned(current_floor)));
-        else
-            report "Andar final: INVALIDO";
-        end if;
         
         report "Estado da porta: " & std_logic'image(dr);
         
@@ -342,25 +321,23 @@ begin
     begin
         wait until rising_edge(clk);
         
-        if current_floor /= "UUUUU" and current_floor /= "XXXXX" then
-            current_floor_int := to_integer(unsigned(current_floor));
+        current_floor_int := current_floor;
             
-            -- Detectar mudanca de andar
-            if current_floor_int /= last_floor then
-                report "[MOVIMENTO] Andar: " & integer'image(last_floor) & 
-                      " -> " & integer'image(current_floor_int);
-                last_floor := current_floor_int;
+        -- Detectar mudanca de andar
+        if current_floor_int /= last_floor then
+            report "[MOVIMENTO] Andar: " & integer'image(last_floor) & 
+                    " -> " & integer'image(current_floor_int);
+            last_floor := current_floor_int;
+        end if;
+        
+        -- Detectar mudanca de estado da porta
+        if dr /= last_door_state then
+            if dr = '1' then
+                report "[PORTA] ABERTA no andar " & integer'image(current_floor_int);
+            else
+                report "[PORTA] FECHADA no andar " & integer'image(current_floor_int);
             end if;
-            
-            -- Detectar mudanca de estado da porta
-            if dr /= last_door_state then
-                if dr = '1' then
-                    report "[PORTA] ABERTA no andar " & integer'image(current_floor_int);
-                else
-                    report "[PORTA] FECHADA no andar " & integer'image(current_floor_int);
-                end if;
-                last_door_state := dr;
-            end if;
+            last_door_state := dr;
         end if;
     end process;
 

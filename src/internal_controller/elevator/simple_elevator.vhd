@@ -1,6 +1,5 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
-use work.custom_types.all;
 
 entity simple_elevator is
   generic (w : natural := 5);
@@ -12,7 +11,7 @@ entity simple_elevator is
     up    : in  std_logic; -- move up
     dn    : in  std_logic; -- move down
     dr    : out std_logic; -- door status (1=open, 0=closed)
-    current_floor  : out std_logic_vector(w-1 downto 0)
+    current_floor  : out integer range 0 to 31
   );
 end simple_elevator;
 
@@ -24,7 +23,7 @@ architecture arch of simple_elevator is
       reset : in  std_logic;
       up    : in  std_logic;
       dn    : in  std_logic;
-      q     : out std_logic_vector(w-1 downto 0)
+      q     : out integer range 0 to 31
     );
   end component;
 
