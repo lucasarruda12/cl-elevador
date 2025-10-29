@@ -13,6 +13,13 @@ build:
 	ghdl -a --workdir=work --work=work src/internal_controller/next_floor_calculator.vhd
 	ghdl -a -fsynopsys --workdir=work --work=work src/internal_controller/in_controller.vhd
 	ghdl -a -fsynopsys --workdir=work --work=work src/top.vhd
-	ghdl -a --workdir=work --work=work testing/tb_top.vhd
-	ghdl -e --workdir=work --work=work tb_top
-	ghdl -r --workdir=work --work=work tb_top --vcd=tb_top.vcd
+	ghdl -a --workdir=work --work=work testing/tb_simple.vhd
+	ghdl -a --workdir=work --work=work testing/tb_concurrent.vhd
+
+test_simple:
+	ghdl -e --workdir=work --work=work tb_simple
+	ghdl -r --workdir=work --work=work tb_simple --vcd=tb_simple.vcd
+
+test_concurrent:
+	ghdl -e --workdir=work --work=work tb_concurrent
+	ghdl -r --workdir=work --work=work tb_concurrent --vcd=tb_concurrent.vcd
