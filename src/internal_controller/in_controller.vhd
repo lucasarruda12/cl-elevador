@@ -143,10 +143,12 @@ begin
                         at_destination := (left_floors = zeros);
                     else
                         move_up_request_var(next_floor_int) := '0';
+                        move_dn_request_var(next_floor_int) := '0';
                         at_destination := left_floors = zeros;
                     end if;
                 elsif status_var = "10" then -- INTENÇÃO: SUBIR, STATUS: SUBIR
                     move_up_request_var(next_floor_int) := '0';
+                    move_dn_request_var(next_floor_int) := '0';
                     left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_int)), 32));
                     at_destination := true;
                 end if;
@@ -160,10 +162,12 @@ begin
                         move_dn_request_var(next_floor_int) := '1';
                         at_destination := false;
                     else
+                        move_up_request_var(next_floor_int) := '0';
                         move_dn_request_var(next_floor_int) := '0';
                         at_destination := true;
                     end if;
                 elsif status_var = "01" then -- INTENÇÃO: DESCER, STATUS: DESCER
+                        move_up_request_var(next_floor_int) := '0';
                         move_dn_request_var(next_floor_int) := '0';
                         left_floors := std_logic_vector(resize(unsigned(move_dn_request_var(next_floor_int downto 0)), 32));
                         at_destination := true;
