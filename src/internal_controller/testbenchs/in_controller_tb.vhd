@@ -170,7 +170,9 @@ begin
         assert to_integer(unsigned(current_floor)) = 0 
             report "FALHA: Andar inicial deveria ser 0" severity error;
         report "  Andar inicial: " & integer'image(to_integer(unsigned(current_floor)));
-        
+
+
+        report "Pedidos interno no andar 5";
         -- Pedido interno simples
         send_requests(
             int_floors => (5 => '1', others => '0'),
@@ -322,7 +324,7 @@ begin
         -- Teste 10: Caso complexo de prioridades
         ------------------------------------------------------------------
         report "### Teste 10 - Caso Complexo de Prioridades ###";
-        report "Múltiplos pedidos internos e externos misturados";
+        report "Multiplos pedidos internos e externos misturados";
         
         apply_reset;
         send_requests(

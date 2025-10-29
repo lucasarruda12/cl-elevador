@@ -10,7 +10,7 @@ entity in_controller is
     int_floor_request : in std_logic_vector(31 downto 0);
     move_up_request   : in std_logic_vector (31 downto 0);
     move_dn_request   : in std_logic_vector (31 downto 0);
-    current_floor     : out std_logic_vector(w-1 downto 0);
+    current_floor     : out std_logic_vector(w-1 downto 0) := (others => '0');
     status            : out std_logic_vector(1 downto 0) := (others => '0');
     intention         : out std_logic_vector(1 downto 0);
     dr                : out std_logic
@@ -26,7 +26,7 @@ architecture arch of in_controller is
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal current_floor_int   : std_logic_vector(w-1 downto 0) := (others => '0');
-    signal next_floor_int      : integer;
+    signal next_floor_int      : integer := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
     signal at_destination_int  : boolean;
 
@@ -54,7 +54,7 @@ architecture arch of in_controller is
         );
     end component;
 
-    component at_destination is
+    component at_destination_calculator is
         generic (w : natural := 5);
         port (
             move_up_request   : in std_logic_vector (31 downto 0);
@@ -92,15 +92,11 @@ begin
             next_floor     => next_floor_int
         );
 
-    current_floor <= current_floor_int;
-    intention <= intention_int;
-    status <= status_int;
-
-    at_destination_inst: at_destination
+    at_destination_inst: at_destination_calculator
     generic map(w => w)
     port map(
-        move_up_request   => move_up_request,
-        move_dn_request   => move_dn_request,
+        move_up_request   => move_up_request_int,
+        move_dn_request   => move_dn_request_int,
         next_floor        => next_floor_int,
         status            => status_int,
         intention         => intention_int,
@@ -153,21 +149,6 @@ begin
                     end if;
                 end if;
             end loop;
-
---===============================================================================================================================
--- Essa seção é responsavel por implementar a lógica do que fazer ao chegar num andar com chamada = '1'
--- Levando em consideração a intenção e o status atual do elevador
--- Ele checa sempre se o PROXIMO ANDAR será um andar com chamada ativa
--- Ao final dessa seção a variavel at_destination nos informará se o elevador deve parar e abrir a porta ou não!
-                  
-            
-
-            -- depois de um ponto o move_up_request_var do proximo é zerado, o status é 00 então, ele segue o else
-            -- o status nn deve ser colocado como 0 ao chegar num destino, só deve ser colocado 0 quando não houverem mais chamadas
-            -- se zerarmos o status, o in_controller vai esquecer em quao direção ele estava indo antes de parar
---===================================================================================================================================
-
-
               
             if at_destination_int then -- SEÇÃO RESPONSÁVEL POR PARAR E ABRIR A PORTA NO ANDAR DESTINO
                 op_int <= '1';
