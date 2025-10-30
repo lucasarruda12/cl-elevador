@@ -4,6 +4,8 @@ use IEEE.numeric_std.all;
 
 entity call_manager is
     port (
+        clk            : in std_logic;
+        reset          : in std_logic;
         move_up_ext    : in std_logic_vector (31 downto 0);
         move_dn_ext    : in std_logic_vector (31 downto 0);
         move_up_int    : in std_logic_vector (31 downto 0);
@@ -28,14 +30,27 @@ begin
     merged_up <= move_up_ext or move_up_int;
     merged_dn <= move_dn_ext or move_dn_int;
 
-    -- Generate com lógica completa
+
     gen_requests: for i in 0 to 31 generate
-        move_up_out(i) <= '0' when (at_destination and i = next_floor) else
-                         '1' when (int_request(i) = '1' and i >= current_floor) else
-                         merged_up(i);
-                         
-        move_dn_out(i) <= '0' when (at_destination and i = next_floor) else
-                         '1' when (int_request(i) = '1' and i < current_floor) else
-                         merged_dn(i);
+        final_up(i) <= '0' when (at_destination and i = next_floor) else
+                        '1' when (int_request(i) = '1' and i >= current_floor) else
+                        merged_up(i);
+                        
+        final_dn(i) <= '0' when (at_destination and i = next_floor) else
+                        '1' when (int_request(i) = '1' and i < current_floor) else
+                        merged_dn(i);
     end generate;
+
+
+
+    process(clk, reset)
+    begin
+        if rising_edge(reset) then
+            move_up_out <= (others => '0');
+            move_dn_out <= (others => '0');
+        elsif rising_edge(clk) then
+            move_up_out <= final_up;
+            move_dn_out <= final_dn;
+        end if;
+    end process;
 end arch;
