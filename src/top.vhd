@@ -10,14 +10,17 @@ entity top is
     out_kb_down  : in std_logic_vector((2**w)-1 downto 0);
 
     el1_kb          : in std_logic_vector((2**w)-1 downto 0);
+    el1_dr          : out std_logic;
     el1_floor       : out std_logic_vector(w-1 downto 0);
     el1_status      : out std_logic_vector(1 downto 0);
 
     el2_kb          : in std_logic_vector((2**w)-1 downto 0);
+    el2_dr          : out std_logic;
     el2_floor       : out std_logic_vector(w-1 downto 0);
     el2_status      : out std_logic_vector(1 downto 0);
 
     el3_kb          : in std_logic_vector((2**w)-1 downto 0);
+    el3_dr          : out std_logic;
     el3_floor       : out std_logic_vector(w-1 downto 0);
     el3_status      : out std_logic_vector(1 downto 0)
   );
@@ -54,6 +57,7 @@ architecture arch of top is
       move_dn_request   : in std_logic_vector (31 downto 0);
       current_floor     : out std_logic_vector(w-1 downto 0);
       status            : out std_logic_vector(1 downto 0);
+      dr                : out std_logic;
       intention         : out std_logic_vector(1 downto 0)
     );
   end component;
@@ -99,6 +103,7 @@ begin
     move_dn_request   => el1_going_down_int,
     current_floor     => el1_floor_int,
     status            => el1_status_int,
+    dr                => el1_dr,
     intention         => el1_intention_int
   );
 
@@ -111,6 +116,7 @@ begin
     move_dn_request   => el2_going_down_int,
     current_floor     => el2_floor_int,
     status            => el2_status_int,
+    dr                => el2_dr,
     intention         => el2_intention_int
   );
 
@@ -123,6 +129,7 @@ begin
     move_dn_request   => el3_going_down_int,
     current_floor     => el3_floor_int,
     status            => el3_status_int,
+    dr                => el3_dr,
     intention         => el3_intention_int
   );
 

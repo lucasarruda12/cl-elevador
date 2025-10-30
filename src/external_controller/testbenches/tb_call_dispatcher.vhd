@@ -10,6 +10,8 @@ architecture sim of tb_call_dispatcher is
   constant w : natural := 3; -- 3 bits = 8 floors
   constant num_floors : integer := 2**w;
 
+  signal clk : std_logic;
+
   -- Input signals
   signal going_up_caught   : call_vector(num_floors-1 downto 0);
   signal going_down_caught : call_vector(num_floors-1 downto 0);
@@ -24,6 +26,7 @@ begin
   dut : entity work.call_dispatcher
     generic map (w => w)
     port map (
+      clk               => clk,
       going_up_caught   => going_up_caught,
       going_down_caught => going_down_caught,
       el1_going_up      => el1_going_up,
