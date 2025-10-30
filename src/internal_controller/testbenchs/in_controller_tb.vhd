@@ -179,7 +179,7 @@ begin
             int_floors => (5 => '1', others => '0'),
             up_floors => (others => '0'),
             down_floors => (others => '0'),
-            duration => 15
+            duration => 20
         );
         report "  Teste 1 concluido com sucesso";
         report "";
@@ -288,6 +288,7 @@ begin
         report "### Teste 8 - Dois Descer + Subir no Maior Andar de Descida ###";
         report "Descer nos andares 14 e 18, Subir no 14";
         
+        apply_reset;
         send_requests(
             int_floors => (others => '0'),
             up_floors => (18 => '1', others => '0'),
@@ -337,6 +338,22 @@ begin
         report "  Teste 10 concluido com sucesso";
         report "";
 
+        ------------------------------------------------------------------
+        -- Teste 10: Caso complexo de prioridades
+        ------------------------------------------------------------------
+        report "### Teste 11 - Pedido no andar atual ###";
+        report "Pedido para subir no andar 0";
+        
+        apply_reset;
+        send_requests(
+            int_floors => (others => '0'),
+            up_floors => (0 => '1', others => '0'),
+            down_floors => (others => '0'),
+            duration => 50
+        );
+        report "  Teste 10 concluido com sucesso";
+        report "";
+        
         ------------------------------------------------------------------
         -- Finalizacao
         ------------------------------------------------------------------

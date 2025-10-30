@@ -68,6 +68,8 @@ architecture arch of in_controller is
     
     component call_manager is
         port (
+            clk            : in  std_logic;
+            reset          : in  std_logic; 
             move_up_ext    : in std_logic_vector (31 downto 0);
             move_dn_ext    : in std_logic_vector (31 downto 0);
             move_up_int    : in std_logic_vector (31 downto 0);
@@ -116,6 +118,8 @@ begin
 
     call_manager_inst: call_manager
         port map(
+            clk            => clk,
+            reset          => reset,
             move_up_ext    => move_up_request,
             move_dn_ext    => move_dn_request,
             move_up_int    => move_up_request_int,
@@ -124,8 +128,8 @@ begin
             at_destination => at_destination_int,
             current_floor  => current_floor_int,
             next_floor     => next_floor_int,
-            move_up_out    => move_up_next,
-            move_dn_out    => move_dn_next
+            move_up_out    => move_up_request_int,
+            move_dn_out    => move_dn_request_int
         );
 
     current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));
@@ -150,18 +154,15 @@ begin
             up_int <= '0';
             dn_int <= '0';
             intention_int <= "00";
-            move_up_request_int <= (others => '0');
-            move_dn_request_int <= (others => '0');
             status_int <= (others => '0');
         elsif rising_edge(clk) then
             current_floor_var := current_floor_int;
             intention_var := intention_int;
 
 --==========================================================================
-
             -- Atualizando os vetores de chamadas baseando-se nas chamadas do clock passado e dos sinais que vem do controlador externo
-            move_up_request_var := move_up_next;
-            move_dn_request_var := move_dn_next;
+            move_up_request_var := move_up_request_int;
+            move_dn_request_var := move_dn_request_int;
               
             if at_destination_int then -- SEÇÃO RESPONSÁVEL POR PARAR E ABRIR A PORTA NO ANDAR DESTINO
                 op_int <= '1';
@@ -184,7 +185,6 @@ begin
 
                 -- CASO NÃO EXISTAM CHAMADAS EM SEU RESPECTIVO VETOR, CHECAMOS AS CHAMADAS NO OUTRO VETOR
                 -- E ZERAMOS A INTENÇÃO
-                  
                 if not call_exists then
                     if intention_int = "10" then
                         call_exists := move_dn_request_var /= zeros;
@@ -209,7 +209,14 @@ begin
 
                 -- SE EXISTIREM CHAMADAS NO OUTRO VETOR E NÃO HOUVER INTENÇÃO, A INTENÇÃO É ATUALIZADA(A DEPENDER DO VETOR)
                 if call_exists and intention_var = "00" then
-                    if move_up_request_var /= zeros then
+                    if (move_up_request_var(current_floor_int) = '1' or move_dn_request_var(current_floor_int) = '1') and status_int = "00" then
+                        op_int <= '1';
+                        cl_int <= '0';
+                        up_int <= '0';
+                        dn_int <= '0';
+                        move_up_request_var(current_floor_int) := '0';
+                        move_dn_request_var(current_floor_int) := '0';
+                    elsif move_up_request_var /= zeros then
                         intention_int <= "10";
                         intention_var := "10";
                     else
@@ -282,9 +289,6 @@ begin
 
             -- O SIGNAL MOVE_UP_REQUEST_INT/MOVE_DN_REQUEST_INT GUARDAM O ESTADO DO MOVE_UP_REQUEST_VAR/MOVE_DN_REQUEST_VAR DO ULTIMO CLOCK
             -- LEMBRANDO QUE AS VARS NÃO PERSISTEM ENTRE CLOCKS, POR ISSO QUE PRECISAMOS DISSO
-            move_up_request_int <= move_up_request_var;
-            move_dn_request_int <= move_dn_request_var;
-
         end if;
         
     end process;
