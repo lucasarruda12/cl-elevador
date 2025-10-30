@@ -25,6 +25,8 @@ architecture arch of in_controller is
     signal intention_int       : std_logic_vector(1 downto 0) := "00";
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
+    signal move_dn_next        : std_logic_vector(31 downto 0) := (others => '0');
+    signal move_up_next        : std_logic_vector(31 downto 0) := (others => '0');
     signal current_floor_int   : integer range 0 to 31;
     signal next_floor_int      : integer range 0 to 31 := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
@@ -62,7 +64,21 @@ architecture arch of in_controller is
             intention         : in std_logic_vector(1 downto 0);
             at_destination    : out boolean
         );
+    end component;
     
+    component call_manager is
+        port (
+            move_up_ext    : in std_logic_vector (31 downto 0);
+            move_dn_ext    : in std_logic_vector (31 downto 0);
+            move_up_int    : in std_logic_vector (31 downto 0);
+            move_dn_int    : in std_logic_vector (31 downto 0);
+            int_request    : in std_logic_vector (31 downto 0);
+            at_destination : in boolean;
+            current_floor  : in integer range 0 to 31;
+            next_floor     : in integer range 0 to 31;
+            move_up_out    : out std_logic_vector (31 downto 0);
+            move_dn_out    : out std_logic_vector (31 downto 0)
+        );
     end component;
 
 begin
@@ -89,15 +105,28 @@ begin
         );
 
     at_destination_inst: at_destination_calculator
-    generic map(w => w)
-    port map(
-        move_up_request   => move_up_request_int,
-        move_dn_request   => move_dn_request_int,
-        next_floor        => next_floor_int,
-        status            => status_int,
-        intention         => intention_int,
-        at_destination    => at_destination_int
-    );
+        port map(
+            move_up_request   => move_up_request_int,
+            move_dn_request   => move_dn_request_int,
+            next_floor        => next_floor_int,
+            status            => status_int,
+            intention         => intention_int,
+            at_destination    => at_destination_int
+        );
+
+    call_manager_inst: call_manager
+        port map(
+            move_up_ext    => move_up_request,
+            move_dn_ext    => move_dn_request,
+            move_up_int    => move_up_request_int,
+            move_dn_int    => move_dn_request_int,
+            int_request    => int_floor_request,
+            at_destination => at_destination_int,
+            current_floor  => current_floor_int,
+            next_floor     => next_floor_int,
+            move_up_out    => move_up_next,
+            move_dn_out    => move_dn_next
+        );
 
     current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));
     intention <= intention_int;
@@ -131,37 +160,19 @@ begin
 --==========================================================================
 
             -- Atualizando os vetores de chamadas baseando-se nas chamadas do clock passado e dos sinais que vem do controlador externo
-            move_up_request_var := move_up_request or move_up_request_int; 
-            move_dn_request_var := move_dn_request or move_dn_request_int;
-            status_var := status_int;
-
-            -- Calculando para qual vetor vai o aperto de botão interno 
-            for i in 0 to 31 loop
-                if int_floor_request(i) = '1' then
-                    if i > current_floor_var then
-                        move_up_request_var(i) := '1';
-                    elsif i < current_floor_var then
-                        move_dn_request_var(i) := '1';
-                    end if;
-                end if;
-            end loop;
+            move_up_request_var := move_up_next;
+            move_dn_request_var := move_dn_next;
               
             if at_destination_int then -- SEÇÃO RESPONSÁVEL POR PARAR E ABRIR A PORTA NO ANDAR DESTINO
                 op_int <= '1';
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
-                move_dn_request_var(next_floor_int) := '0';
-                move_up_request_var(next_floor_int) := '0';
-                move_up_request_int <= move_up_request_var;
-                move_dn_request_int <= move_dn_request_var;
 
             else  -- CASO NÃO ESTIVER EM UM ANDAR DESTINO
                 op_int <= '0';
                 cl_int <= '1';
-                move_up_request_int <= move_up_request_var;
-                move_dn_request_int <= move_dn_request_var;
-
+                
                 -- A DEPENDER DA INTENÇÃO, CHECA A PRESENÇA DE CHAMADAS EM SEU RESPECTIVO VETOR
                 if intention_int = "10" then
                     call_exists := move_up_request_var /= zeros;
