@@ -10,15 +10,12 @@ entity at_destination_calculator is
     next_floor      : in integer range 0 to 31 := 0;
     status          : in std_logic_vector(1 downto 0);
     intention       : in std_logic_vector(1 downto 0);
-    no_calls_left   : out boolean;
     at_destination  : out boolean
   );
 end at_destination_calculator;
 
 architecture arch of at_destination_calculator is
   signal floor_index : integer range 0 to 31;
-  signal move_up_var : std_logic_vector(31 downto 0);
-  signal move_dn_var : std_logic_vector(31 downto 0);
   signal left_floors : std_logic_vector(31 downto 0);
   signal zeros       : std_logic_vector(31 downto 0) := (others => '0');
 
@@ -28,23 +25,12 @@ begin
                  0 when next_floor < 0 else
                  31;
 
-  -- Zera a chamada do andar atual
-  gen_move_up: for i in 0 to 31 generate
-    move_up_var(i) <= '0' when i = floor_index else move_up_request(i);
-  end generate;
-
-  gen_move_dn: for i in 0 to 31 generate
-    move_dn_var(i) <= '0' when i = floor_index else move_dn_request(i);
-  end generate;
-
   -- Calculando left_floors dependendo da intenção
   gen_left_floors: for i in 0 to 31 generate
-    left_floors(i) <= move_up_var(i) when (intention = "10" and i <= floor_index) else
-                       move_dn_var(i) when (intention = "01" and i >= floor_index) else
+    left_floors(i) <= move_up_request(i) when (intention = "10" and i < floor_index) else
+                      move_dn_request(i) when (intention = "01" and i > floor_index) else
                        '0';
   end generate;
-
-  no_calls_left <= left_floors = zeros;
 
   -- Determinando se estamos no destino
   at_destination <= 

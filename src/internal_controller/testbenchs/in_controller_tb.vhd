@@ -148,6 +148,7 @@ begin
             move_up_request <= up_floors;
             move_dn_request <= down_floors;
             wait until rising_edge(clk);
+            wait until rising_edge(clk);
             int_floor_request <= (others => '0');
             move_up_request <= (others => '0');
             move_dn_request <= (others => '0');
