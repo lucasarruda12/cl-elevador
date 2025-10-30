@@ -3,7 +3,6 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity next_floor_calculator is
-    generic (w : natural := 5);
     port (
         up             : in std_logic;
         dn             : in std_logic;
