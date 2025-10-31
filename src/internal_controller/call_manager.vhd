@@ -23,8 +23,8 @@ architecture arch of call_manager is
     -- Sinais intermediários
     signal merged_up        : std_logic_vector(31 downto 0);
     signal merged_dn        : std_logic_vector(31 downto 0);
-    signal final_up         : std_logic_vector(31 downto 0);
-    signal final_dn         : std_logic_vector(31 downto 0);
+    signal reg_up         : std_logic_vector(31 downto 0);
+    signal reg_dn         : std_logic_vector(31 downto 0);
 begin
     -- Merge (OR) com vetores externos
     merged_up <= move_up_ext or move_up_int;
@@ -32,11 +32,11 @@ begin
 
 
     gen_requests: for i in 0 to 31 generate
-        final_up(i) <= '0' when (at_destination and i = next_floor) else
+        reg_up(i) <= '0' when (at_destination and i = next_floor) else
                         '1' when (int_request(i) = '1' and i >= current_floor) else
                         merged_up(i);
                         
-        final_dn(i) <= '0' when (at_destination and i = next_floor) else
+        reg_dn(i) <= '0' when (at_destination and i = next_floor) else
                         '1' when (int_request(i) = '1' and i < current_floor) else
                         merged_dn(i);
     end generate;
@@ -49,8 +49,8 @@ begin
             move_up_out <= (others => '0');
             move_dn_out <= (others => '0');
         elsif rising_edge(clk) then
-            move_up_out <= final_up;
-            move_dn_out <= final_dn;
+            move_up_out <= reg_up;
+            move_dn_out <= reg_dn;
         end if;
     end process;
 end arch;

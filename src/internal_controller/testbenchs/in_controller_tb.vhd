@@ -207,12 +207,11 @@ begin
         report "Pedidos de descida nos andares 12 e 16";
         
         apply_reset;
-        
         send_requests(
             int_floors => (others => '0'),
             up_floors => (others => '0'),
             down_floors => (12 => '1', 16 => '1', others => '0'),
-            duration => 25
+            duration => 30
         );
         report "  Teste 3 concluido com sucesso";
         report "";
@@ -291,7 +290,7 @@ begin
         apply_reset;
         send_requests(
             int_floors => (others => '0'),
-            up_floors => (18 => '1', others => '0'),
+            up_floors => (14 => '1', others => '0'),
             down_floors => (14 => '1', 18 => '1', others => '0'),
             duration => 40
         );
