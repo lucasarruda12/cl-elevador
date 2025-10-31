@@ -31,6 +31,7 @@ architecture arch of in_controller is
     signal next_floor_int      : integer range 0 to 31 := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
     signal at_destination_int  : boolean;
+    signal call_dir            : std_logic_vector(1 downto 0)  := (others => '0');
 
     component simple_elevator is
         port (
@@ -55,11 +56,11 @@ architecture arch of in_controller is
     end component;
 
     component at_destination_calculator is
-        generic (w : natural := 5);
         port (
             move_up_request   : in std_logic_vector (31 downto 0);
             move_dn_request   : in std_logic_vector (31 downto 0);
             next_floor        : in integer range 0 to 31;
+            current_floor     : integer range 0 to 31;
             status            : in std_logic_vector(1 downto 0);
             intention         : in std_logic_vector(1 downto 0);
             at_destination    : out boolean
@@ -80,6 +81,14 @@ architecture arch of in_controller is
             next_floor     : in integer range 0 to 31;
             move_up_out    : out std_logic_vector (31 downto 0);
             move_dn_out    : out std_logic_vector (31 downto 0)
+        );
+    end component;
+
+    component call_analyzer is
+        port ( 
+            move_up_request   : in std_logic_vector (31 downto 0);
+            move_dn_request   : in std_logic_vector (31 downto 0);
+            call_dir          : out std_logic_vector(1 downto 0)  := (others => '0')
         );
     end component;
 
@@ -111,6 +120,7 @@ begin
             move_up_request   => move_up_request_int,
             move_dn_request   => move_dn_request_int,
             next_floor        => next_floor_int,
+            current_floor     => current_floor_int,
             status            => status_int,
             intention         => intention_int,
             at_destination    => at_destination_int
@@ -132,6 +142,13 @@ begin
             move_dn_out    => move_dn_request_int
         );
 
+    call_analyzer_inst: call_analyzer
+        port map( 
+            move_up_request   => move_up_request_int,
+            move_dn_request   => move_dn_request_int,
+            call_dir          => call_dir
+        );
+
     current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));
     intention <= intention_int;
     status <= status_int;
@@ -139,7 +156,6 @@ begin
     process(clk, reset)
         variable current_floor_var   : integer;
         variable added_calls         : integer;
-        variable call_exists         : boolean;
         variable left_floors         : std_logic_vector(31 downto 0);
         variable move_up_request_var : std_logic_vector(31 downto 0) := (others => '0');
         variable move_dn_request_var : std_logic_vector(31 downto 0) := (others => '0');
@@ -169,65 +185,32 @@ begin
                 cl_int <= '0';
                 up_int <= '0';
                 dn_int <= '0';
-
-            else  -- CASO NÃO ESTIVER EM UM ANDAR DESTINO
+            else 
                 op_int <= '0';
                 cl_int <= '1';
                 
-                -- A DEPENDER DA INTENÇÃO, CHECA A PRESENÇA DE CHAMADAS EM SEU RESPECTIVO VETOR
-                if intention_int = "10" then
-                    call_exists := move_up_request_var /= zeros;
-                elsif intention_int = "01" then
-                    call_exists := move_dn_request_var /= zeros;
-                else
-                    call_exists := (move_up_request_var /= zeros) or (move_dn_request_var /= zeros);
-                end if;
-
-                -- CASO NÃO EXISTAM CHAMADAS EM SEU RESPECTIVO VETOR, CHECAMOS AS CHAMADAS NO OUTRO VETOR
-                -- E ZERAMOS A INTENÇÃO
-                if not call_exists then
-                    if intention_int = "10" then
-                        call_exists := move_dn_request_var /= zeros;
+                if call_dir = "00" then
                         intention_int <= "00";
                         intention_var := "00";
-                    elsif intention_int = "01" then
-                        call_exists := move_up_request_var /= zeros;
-                        intention_int <= "00";
-                        intention_var := "00";
-                    end if;
-                end if;
-
-                -- SE NÃO EXISTIREM CHAMADAS NO OUTRO VETOR, A INTENÇÃO CONTINUA ZERADA, E O ELEVADOR PARA.
-                if not call_exists then
-                    intention_int <= "00";
-                    intention_var := "00";
-                    status_int <= "00";
-                    status_var := "00";
-                    dn_int <= '0';
-                    up_int <= '0';
-                end if;
-
-                -- SE EXISTIREM CHAMADAS NO OUTRO VETOR E NÃO HOUVER INTENÇÃO, A INTENÇÃO É ATUALIZADA(A DEPENDER DO VETOR)
-                if call_exists and intention_var = "00" then
-                    if (move_up_request_var(current_floor_int) = '1' or move_dn_request_var(current_floor_int) = '1') and status_int = "00" then
-                        op_int <= '1';
-                        cl_int <= '0';
-                        up_int <= '0';
+                        status_int <= "00";
+                        status_var := "00";
                         dn_int <= '0';
-                        move_up_request_var(current_floor_int) := '0';
-                        move_dn_request_var(current_floor_int) := '0';
-                    elsif move_up_request_var /= zeros then
-                        intention_int <= "10";
-                        intention_var := "10";
-                    else
-                        intention_int <= "01";
-                        intention_var := "01";
+                        up_int <= '0';
+                else
+                    if call_dir = not intention_int then
+                        intention_int <= not intention_int;
+                        intention_var := intention_int;
                     end if;
-                end if;
 
-                -- CASO CHAMADAS EXISTIREM E A INTENÇÃO NÃO FOR ZERO
-                if intention_var /= "00" then --chamadas existem
-                    if intention_var = "10" then
+                    if intention_var = "00" then
+                        if call_dir = "10" or call_dir = "11"  then
+                            intention_int <= "10";
+                            intention_var := "10";
+                        else
+                            intention_int <= "01";
+                            intention_var := "01";
+                        end if;
+                    elsif intention_var = "10" then
                         if status_var = "10" or status_var = "00" then 
                             left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_int)), 32));
                             if left_floors /= zeros then  -- CASO ELE ESTIVER PARADO OU SUBINDO COM A INTENÇÃO DE SUBIR E AINDA HOUVEREM CHAMADAS ACIMA, ELE SOBE
@@ -284,9 +267,8 @@ begin
                             end if;
                         end if;
                     end if;
+                    end if;
                 end if;
-            end if;
-
             -- O SIGNAL MOVE_UP_REQUEST_INT/MOVE_DN_REQUEST_INT GUARDAM O ESTADO DO MOVE_UP_REQUEST_VAR/MOVE_DN_REQUEST_VAR DO ULTIMO CLOCK
             -- LEMBRANDO QUE AS VARS NÃO PERSISTEM ENTRE CLOCKS, POR ISSO QUE PRECISAMOS DISSO
         end if;

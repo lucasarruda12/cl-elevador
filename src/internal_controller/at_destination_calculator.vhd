@@ -7,6 +7,7 @@ entity at_destination_calculator is
     move_up_request : in std_logic_vector (31 downto 0);
     move_dn_request : in std_logic_vector (31 downto 0);
     next_floor      : in integer range 0 to 31 := 0;
+    current_floor   : integer range 0 to 31 := 0;
     status          : in std_logic_vector(1 downto 0);
     intention       : in std_logic_vector(1 downto 0);
     at_destination  : out boolean
@@ -38,6 +39,7 @@ begin
        ((intention = "01" and move_dn_request(floor_index) = '1') and
         (status = "01" or left_floors = zeros)) or
        ((intention = "00") and 
-        (move_dn_request(floor_index) = '1' or move_up_request(floor_index) = '1'));
+        (move_dn_request(floor_index) = '1' or move_up_request(floor_index) = '1')) or
+       ((move_up_request(current_floor) = '1' or move_dn_request(current_floor) = '1') and status = "00");
 
 end arch;
