@@ -25,8 +25,6 @@ architecture arch of in_controller is
     signal intention_int       : std_logic_vector(1 downto 0) := "00";
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
-    signal move_dn_next        : std_logic_vector(31 downto 0) := (others => '0');
-    signal move_up_next        : std_logic_vector(31 downto 0) := (others => '0');
     signal current_floor_int   : integer range 0 to 31;
     signal next_floor_int      : integer range 0 to 31 := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
@@ -92,6 +90,15 @@ architecture arch of in_controller is
         );
     end component;
 
+    component intention_manager is
+        port (
+            clk       : in std_logic;
+            reset     : in std_logic;
+            call_dir  : in std_logic_vector(1 downto 0) := (others => '0');
+            intention : out std_logic_vector(1 downto 0) := (others => '0')
+        );
+    end component;
+
 begin
     -- Mecanismo do elevador
     simple_elevator_inst: simple_elevator
@@ -148,6 +155,14 @@ begin
             move_dn_request   => move_dn_request_int,
             call_dir          => call_dir
         );
+    
+    intention_manager_inst: intention_manager
+        port map(
+            clk        => clk,
+            reset      => reset,
+            call_dir   => call_dir,
+            intention  => intention_int
+        );
 
     current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));
     intention <= intention_int;
@@ -169,7 +184,6 @@ begin
             cl_int <= '0';
             up_int <= '0';
             dn_int <= '0';
-            intention_int <= "00";
             status_int <= (others => '0');
         elsif rising_edge(clk) then
             current_floor_var := current_floor_int;
@@ -190,27 +204,12 @@ begin
                 cl_int <= '1';
                 
                 if call_dir = "00" then
-                        intention_int <= "00";
-                        intention_var := "00";
                         status_int <= "00";
                         status_var := "00";
                         dn_int <= '0';
                         up_int <= '0';
                 else
-                    if call_dir = not intention_int then
-                        intention_int <= not intention_int;
-                        intention_var := intention_int;
-                    end if;
-
-                    if intention_var = "00" then
-                        if call_dir = "10" or call_dir = "11"  then
-                            intention_int <= "10";
-                            intention_var := "10";
-                        else
-                            intention_int <= "01";
-                            intention_var := "01";
-                        end if;
-                    elsif intention_var = "10" then
+                    if intention_var = "10" then
                         if status_var = "10" or status_var = "00" then 
                             left_floors := std_logic_vector(resize(unsigned(move_up_request_var(31 downto next_floor_int)), 32));
                             if left_floors /= zeros then  -- CASO ELE ESTIVER PARADO OU SUBINDO COM A INTENÇÃO DE SUBIR E AINDA HOUVEREM CHAMADAS ACIMA, ELE SOBE
