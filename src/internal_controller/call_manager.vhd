@@ -33,24 +33,22 @@ begin
 
     gen_requests: for i in 0 to 31 generate
         reg_up(i) <= '0' when (at_destination and i = next_floor) else
-                        '1' when (int_request(i) = '1' and i >= current_floor) else
-                        merged_up(i);
+                     '1' when (int_request(i) = '1' and i >= current_floor) else
+                     merged_up(i);
                         
         reg_dn(i) <= '0' when (at_destination and i = next_floor) else
-                        '1' when (int_request(i) = '1' and i < current_floor) else
-                        merged_dn(i);
+                     '1' when (int_request(i) = '1' and i < current_floor) else
+                     merged_dn(i);
     end generate;
 
-
-
     process(clk, reset)
-    begin
-        if rising_edge(reset) then
-            move_up_out <= (others => '0');
-            move_dn_out <= (others => '0');
-        elsif rising_edge(clk) then
-            move_up_out <= reg_up;
-            move_dn_out <= reg_dn;
-        end if;
-    end process;
+        begin
+            if rising_edge(reset) then
+                move_up_out <= (others => '0');
+                move_dn_out <= (others => '0');
+            elsif rising_edge(clk) then
+                move_up_out <= reg_up;
+                move_dn_out <= reg_dn;
+            end if;
+        end process;
 end arch;
