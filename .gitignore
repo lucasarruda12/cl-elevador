@@ -5,4 +5,5 @@ work/*
 *.wlf
 *.vcd
 *.cf
+*.vcd
 /work/*

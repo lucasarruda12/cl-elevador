@@ -20,7 +20,7 @@ entity call_manager is
 end call_manager;
 
 architecture arch of call_manager is
-    -- Sinais intermedi·rios
+    -- Sinais intermedi√°rios
     signal merged_up        : std_logic_vector(31 downto 0);
     signal merged_dn        : std_logic_vector(31 downto 0);
     signal reg_up         : std_logic_vector(31 downto 0);

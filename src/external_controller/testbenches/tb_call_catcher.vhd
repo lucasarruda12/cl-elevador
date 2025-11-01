@@ -40,11 +40,11 @@ begin
     for i in 0 to (2**w)-1 loop
       going_up(i).active      <= '0';
       going_up(i).respondent  <= "00";
-      going_up(i).score  <= "000000";
+      going_up(i).score  <= (others => '0');
 
       going_down(i).active      <= '0';
       going_down(i).respondent  <= "00";
-      going_down(i).score  <= "000000";
+      going_down(i).score  <= (others => '0');
     end loop;
 
     wait for 50 ns;

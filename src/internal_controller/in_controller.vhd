@@ -25,6 +25,8 @@ architecture arch of in_controller is
     signal intention_int       : std_logic_vector(1 downto 0) := "00";
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
+    signal move_dn_next        : std_logic_vector(31 downto 0) := (others => '0');
+    signal move_up_next        : std_logic_vector(31 downto 0) := (others => '0');
     signal current_floor_int   : integer range 0 to 31;
     signal next_floor_int      : integer range 0 to 31 := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
@@ -192,7 +194,7 @@ begin
                     up_int <= '0';
                 else
                     -- Com chamadas
-                    if intention_int = "10" then -- Intenção de subir
+                    if intention_int = "10" then -- IntenÃ§Ã£o de subir
                         if status_int = "10" or status_int = "00" then
                             -- Verificar chamadas acima
                             left_floors := (others => '0');
@@ -226,7 +228,7 @@ begin
                                 up_int <= '1';
                             end if;
                         end if;
-                    elsif intention_int = "01" then -- Intenção de descer
+                    elsif intention_int = "01" then -- IntenÃ§Ã£o de descer
                         if status_int = "01" or status_int = "00" then
                             -- Verificar chamadas abaixo
                             left_floors := (others => '0');
@@ -261,10 +263,11 @@ begin
                             end if;
                         end if;
                     else
-                        -- Intenção inválida
+                        -- IntenÃ§Ã£o invÃ¡lida
                         status_int <= "00";
                         up_int <= '0';
                         dn_int <= '0';
+                    end if;
                     end if;
                 end if;
             end if;

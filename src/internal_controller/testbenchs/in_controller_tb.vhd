@@ -41,7 +41,7 @@ architecture sim of in_controller_tb is
     signal door_was_open     : boolean := false;
     signal door_open_time    : time := 0 ns;
 
-    -- Funcıes locais para conversao
+    -- Func√µes locais para conversao
     function status_to_string(st : std_logic_vector(1 downto 0)) return string is
     begin
         case st is
@@ -239,7 +239,6 @@ begin
         report "Descer no 10, Subir no 5";
         
         apply_reset;
-        -- Pedidos: descer no 10, subir no 15
         send_requests(
             int_floors => (others => '0'),
             up_floors => (5 => '1', others => '0'),
@@ -298,13 +297,12 @@ begin
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 10: Pedido subsequente durante movimento
+        -- Teste 9: Pedido subsequente durante movimento
         ------------------------------------------------------------------
         report "### Teste 9 - Pedido Subsequente Durante Movimento ###";
         report "Subir nos andares 2 e 10, depois pedido interno para descer";
         
         apply_reset;
-        -- Envia pedidos iniciais de subida
         send_requests(
             int_floors => (others => '0'),
             up_floors => (2 => '1', 10 => '1', others => '0'),
@@ -312,7 +310,7 @@ begin
             duration => 5
         );
         
-        report "  Enviando pedido interno para descer apÛs 4 clocks";
+        report "  Enviando pedido interno para descer ap√≥s 4 clocks";
         int_floor_request <= (7 => '1', others => '0');
         wait until rising_edge(clk);
         int_floor_request <= (others => '0');
@@ -338,7 +336,7 @@ begin
         report "";
 
         ------------------------------------------------------------------
-        -- Teste 10: Caso complexo de prioridades
+        -- Teste 11: Caso pedido no mesmo andar para um elevador parado
         ------------------------------------------------------------------
         report "### Teste 11 - Pedido no andar atual ###";
         report "Pedido para subir no andar 0";
@@ -364,7 +362,7 @@ begin
         report "";
         report "Todos os testes do in_controller foram concluidos!";
         report "==================================================";
-        report "           SIMULACAO CONCLUÕDA";
+        report "           SIMULACAO CONCLU√çDA";
         report "==================================================";
         
         sim_ended <= true;
