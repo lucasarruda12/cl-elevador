@@ -31,6 +31,7 @@ begin
     merged_dn <= move_dn_ext or move_dn_int;
 
 
+    -- Gera vetor que considera o lugar do elevador e os pedidos internos
     gen_requests: for i in 0 to 31 generate
         reg_up(i) <= '0' when (at_destination and i = next_floor) else
                      '1' when (int_request(i) = '1' and i >= current_floor) else

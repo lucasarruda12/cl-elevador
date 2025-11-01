@@ -19,8 +19,7 @@ begin
     reg_next <= current_floor + 1 when (up = '1') else
                 current_floor - 1 when (dn = '1') else
                 current_floor;       
-
-
+                
     next_floor <= reg_next when reg_next >= 0 and reg_next <= 31 else
                   0 when reg_next < 0 else 31;        
 

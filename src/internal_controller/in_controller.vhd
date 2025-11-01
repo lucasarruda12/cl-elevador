@@ -163,10 +163,6 @@ begin
             intention       => intention_int
         );
 
-    current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));
-    intention <= intention_int;
-    status <= status_int;
-
     process(clk, reset)
         variable left_floors : std_logic_vector(31 downto 0);
         variable zeros       : std_logic_vector(31 downto 0) := (others => '0');
