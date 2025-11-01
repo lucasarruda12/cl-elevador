@@ -13,16 +13,29 @@ entity top is
     el1_dr          : out std_logic;
     el1_floor       : out std_logic_vector(w-1 downto 0);
     el1_status      : out std_logic_vector(1 downto 0);
+    el1_floor_unit  : out std_logic_vector(6 downto 0); 
+    el1_floor_ten   : out std_logic_vector(6 downto 0);
+    el1_st_dn       : out std_logic; 
+    el1_st_up       : out std_logic;
+    
 
     el2_kb          : in std_logic_vector((2**w)-1 downto 0);
     el2_dr          : out std_logic;
     el2_floor       : out std_logic_vector(w-1 downto 0);
     el2_status      : out std_logic_vector(1 downto 0);
+    el2_floor_unit  : out std_logic_vector(6 downto 0); 
+    el2_floor_ten  : out std_logic_vector(6 downto 0); 
+    el2_st_dn       : out std_logic; 
+    el2_st_up       : out std_logic;
 
     el3_kb          : in std_logic_vector((2**w)-1 downto 0);
     el3_dr          : out std_logic;
     el3_floor       : out std_logic_vector(w-1 downto 0);
-    el3_status      : out std_logic_vector(1 downto 0)
+    el3_status      : out std_logic_vector(1 downto 0);
+    el3_floor_unit  : out std_logic_vector(6 downto 0);
+    el3_floor_ten   : out std_logic_vector(6 downto 0);
+    el3_st_dn       : out std_logic; 
+    el3_st_up       : out std_logic
   );
 end top;
 
@@ -35,23 +48,32 @@ architecture arch of top is
   signal el1_intention_int   : std_logic_vector(1 downto 0);
   signal el1_going_up_int    : std_logic_vector((2**w)-1 downto 0);
   signal el1_going_down_int  : std_logic_vector((2**w)-1 downto 0);
+  signal el1_floor_unit_int  : std_logic_vector(6 downto 0);
+  signal el1_floor_ten_int   : std_logic_vector(6 downto 0); 
 
   signal el2_floor_int       : std_logic_vector(w-1 downto 0);
   signal el2_status_int      : std_logic_vector(1 downto 0);
   signal el2_intention_int   : std_logic_vector(1 downto 0);
   signal el2_going_up_int    : std_logic_vector((2**w)-1 downto 0);
   signal el2_going_down_int  : std_logic_vector((2**w)-1 downto 0);
+  signal el2_floor_unit_int  : std_logic_vector(6 downto 0); 
+  signal el2_floor_ten_int   : std_logic_vector(6 downto 0); 
 
   signal el3_floor_int       : std_logic_vector(w-1 downto 0);
   signal el3_status_int      : std_logic_vector(1 downto 0);
   signal el3_intention_int   : std_logic_vector(1 downto 0);
   signal el3_going_up_int    : std_logic_vector((2**w)-1 downto 0);
   signal el3_going_down_int  : std_logic_vector((2**w)-1 downto 0);
+  signal el3_floor_unit_int  : std_logic_vector(6 downto 0); 
+  signal el3_floor_ten_int   : std_logic_vector(6 downto 0); 
+
+  signal reset               : std_logic := '0';
 
   component in_controller is
     generic (w : natural := 5);
     port (
       clk               : in std_logic;
+      reset             : in std_logic;
       int_floor_request : in std_logic_vector(31 downto 0);
       move_up_request   : in std_logic_vector (31 downto 0);
       move_dn_request   : in std_logic_vector (31 downto 0);
@@ -90,6 +112,15 @@ architecture arch of top is
     );
   end component;
 
+  component floor_seg_display is
+    generic (w : natural := 5);
+    port (
+        number_input : in std_logic_vector(w-1 downto 0);
+        digit0_out   : out std_logic_vector(6 downto 0); 
+        digit1_out   : out std_logic_vector(6 downto 0)  
+    );
+  end component;
+
 begin
   out_kb_up_int   <= out_kb_up; 
   out_kb_down_int <= out_kb_down; 
@@ -98,6 +129,7 @@ begin
   generic map (w => w)
   port map(
     clk               => clk,
+    reset             => reset,
     int_floor_request => el1_kb,
     move_up_request   => el1_going_up_int,
     move_dn_request   => el1_going_down_int,
@@ -107,10 +139,20 @@ begin
     intention         => el1_intention_int
   );
 
+  floor1 : floor_seg_display
+  generic map(w => w)
+  port map(
+        number_input => el1_floor_int,
+        digit0_out   => el1_floor_unit_int,
+        digit1_out   => el1_floor_ten_int
+  );
+
+
   el2 : in_controller
   generic map (w => w)
   port map(
     clk               => clk,
+    reset             => reset,
     int_floor_request => el2_kb,
     move_up_request   => el2_going_up_int,
     move_dn_request   => el2_going_down_int,
@@ -120,10 +162,19 @@ begin
     intention         => el2_intention_int
   );
 
+  floor2 : floor_seg_display
+  generic map(w => w)
+  port map(
+        number_input => el2_floor_int,
+        digit0_out   => el2_floor_unit_int,
+        digit1_out   => el2_floor_ten_int
+  );
+
   el3 : in_controller
   generic map (w => w)
   port map(
     clk               => clk,
+    reset             => reset,
     int_floor_request => el3_kb,
     move_up_request   => el3_going_up_int,
     move_dn_request   => el3_going_down_int,
@@ -131,6 +182,14 @@ begin
     status            => el3_status_int,
     dr                => el3_dr,
     intention         => el3_intention_int
+  );
+
+  floor3 : floor_seg_display
+  generic map(w => w)
+  port map(
+        number_input => el3_floor_int,
+        digit0_out   => el3_floor_unit_int,
+        digit1_out   => el3_floor_ten_int
   );
 
   sch : scheduler
@@ -161,10 +220,23 @@ begin
 
   el1_floor  <= el1_floor_int;
   el1_status <= el1_status_int;
+  el1_floor_unit <= el1_floor_unit_int;
+  el1_floor_ten  <= el1_floor_ten_int;
+  el1_st_dn <= el1_status_int(0);
+  el1_st_up <= el1_status_int(1);
 
   el2_floor  <= el2_floor_int;
   el2_status <= el2_status_int;
+  el2_floor_unit <= el2_floor_unit_int;
+  el2_floor_ten  <= el2_floor_ten_int;
+  el2_st_dn <= el2_status_int(0);
+  el2_st_up <= el2_status_int(1);
 
   el3_floor  <= el3_floor_int;
   el3_status <= el3_status_int;
+  el3_floor_unit <= el3_floor_unit_int;
+  el3_floor_ten  <= el3_floor_ten_int;
+  el3_st_dn <= el3_status_int(0);
+  el3_st_up <= el3_status_int(1);
+
 end arch;

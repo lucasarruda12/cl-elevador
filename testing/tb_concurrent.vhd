@@ -7,25 +7,39 @@ end tb_concurrent;
 
 architecture tb of tb_concurrent is
   constant w : natural := 5;
-  signal clk  : std_logic := '0';
+    signal clk : std_logic;
 
-  signal out_kb_up   : std_logic_vector((2**w)-1 downto 0) := (others => '0');
-  signal out_kb_down : std_logic_vector((2**w)-1 downto 0) := (others => '0');
+    signal out_kb_up    : std_logic_vector((2**w)-1 downto 0);
+    signal out_kb_down  : std_logic_vector((2**w)-1 downto 0);
 
-  signal el1_kb     : std_logic_vector((2**w)-1 downto 0) := (others => '0');
-  signal el1_dr     : std_logic;
-  signal el1_floor  : std_logic_vector(w-1 downto 0);
-  signal el1_status : std_logic_vector(1 downto 0);
+    signal el1_kb          : std_logic_vector((2**w)-1 downto 0);
+    signal el1_dr          : std_logic;
+    signal el1_floor       : std_logic_vector(w-1 downto 0);
+    signal el1_status      : std_logic_vector(1 downto 0);
+    signal el1_floor_unit  : std_logic_vector(6 downto 0); 
+    signal el1_floor_ten   : std_logic_vector(6 downto 0);
+    signal el1_st_dn       : std_logic; 
+    signal el1_st_up       : std_logic;
 
-  signal el2_kb     : std_logic_vector((2**w)-1 downto 0) := (others => '0');
-  signal el2_dr     : std_logic;
-  signal el2_floor  : std_logic_vector(w-1 downto 0);
-  signal el2_status : std_logic_vector(1 downto 0);
+    signal el2_kb          : std_logic_vector((2**w)-1 downto 0);
+    signal el2_dr          : std_logic;
+    signal el2_floor       : std_logic_vector(w-1 downto 0);
+    signal el2_status      : std_logic_vector(1 downto 0);
+    signal el2_floor_unit  : std_logic_vector(6 downto 0); 
+    signal el2_floor_ten   : std_logic_vector(6 downto 0); 
+    signal el2_st_dn       : std_logic; 
+    signal el2_st_up       : std_logic;
 
-  signal el3_kb     : std_logic_vector((2**w)-1 downto 0) := (others => '0');
-  signal el3_dr     : std_logic;
-  signal el3_floor  : std_logic_vector(w-1 downto 0);
-  signal el3_status : std_logic_vector(1 downto 0);
+    signal el3_kb          : std_logic_vector((2**w)-1 downto 0);
+    signal el3_dr          : std_logic;
+    signal el3_floor       : std_logic_vector(w-1 downto 0);
+    signal el3_status      : std_logic_vector(1 downto 0);
+    signal el3_floor_unit  : std_logic_vector(6 downto 0);
+    signal el3_floor_ten   : std_logic_vector(6 downto 0);
+    signal el3_st_dn       : std_logic; 
+    signal el3_st_up       : std_logic;
+
+  signal sim_ended  : boolean := false;
 
   component top is
     generic (w : natural := 5);
@@ -39,16 +53,30 @@ architecture tb of tb_concurrent is
       el1_dr          : out std_logic;
       el1_floor       : out std_logic_vector(w-1 downto 0);
       el1_status      : out std_logic_vector(1 downto 0);
+      el1_floor_unit  : out std_logic_vector(6 downto 0); 
+      el1_floor_ten   : out std_logic_vector(6 downto 0);
+      el1_st_dn       : out std_logic; 
+      el1_st_up       : out std_logic;
+      
 
       el2_kb          : in std_logic_vector((2**w)-1 downto 0);
       el2_dr          : out std_logic;
       el2_floor       : out std_logic_vector(w-1 downto 0);
       el2_status      : out std_logic_vector(1 downto 0);
+      el2_floor_unit  : out std_logic_vector(6 downto 0); 
+      el2_floor_ten   : out std_logic_vector(6 downto 0); 
+      el2_st_dn       : out std_logic; 
+      el2_st_up       : out std_logic;
 
       el3_kb          : in std_logic_vector((2**w)-1 downto 0);
       el3_dr          : out std_logic;
       el3_floor       : out std_logic_vector(w-1 downto 0);
-      el3_status      : out std_logic_vector(1 downto 0));
+      el3_status      : out std_logic_vector(1 downto 0);
+      el3_floor_unit  : out std_logic_vector(6 downto 0);
+      el3_floor_ten   : out std_logic_vector(6 downto 0);
+      el3_st_dn       : out std_logic; 
+      el3_st_up       : out std_logic
+    );
   end component;
 begin
   DUT : top
@@ -76,22 +104,27 @@ begin
     );
 
   -- Simula um clk. Roda pra sempre
-  process
+  clk_process: process
   begin
-    clk <= '0';
-    wait for 10 ps;
-    clk <= '1';
-    wait for 10 ps;
+    while not sim_ended loop
+      clk <= '0';
+      wait for 10 ps;
+      clk <= '1';
+      wait for 10 ps;
+    end loop;
+    wait;  
   end process;
 
-  -- Quero que a simulação pare em algum momento
+  -- Quero que a simulacao pare em algum momento
   process
   begin
     wait for 1000 ps; -- muda aqui o tempo da simulação
-    assert false report "Parei aqui!" severity failure;
+    report "Teste completo!";
+    sim_ended <= true;
+    wait;
   end process;
 
-  -- Simula uma única chamada
+  -- Simula uma unica chamada
   process
   begin
     out_kb_down(22) <= '1';
