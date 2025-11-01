@@ -362,7 +362,7 @@ begin
         report "";
         report "Todos os testes do in_controller foram concluidos!";
         report "==================================================";
-        report "           SIMULACAO CONCLUÍDA";
+        report "           SIMULACAO CONCLUIDA";
         report "==================================================";
         
         sim_ended <= true;

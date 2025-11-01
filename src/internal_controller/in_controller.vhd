@@ -271,7 +271,6 @@ begin
                     end if;
                 end if;
             end if;
-        end if;
     end process;
 
     current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));
