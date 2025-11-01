@@ -41,16 +41,14 @@ begin
                      merged_dn(i);
     end generate;
 
-
-
     process(clk, reset)
-    begin
-        if rising_edge(reset) then
-            move_up_out <= (others => '0');
-            move_dn_out <= (others => '0');
-        elsif rising_edge(clk) then
-            move_up_out <= reg_up;
-            move_dn_out <= reg_dn;
-        end if;
-    end process;
+        begin
+            if reset = '1' then
+                move_up_out <= (others => '0');
+                move_dn_out <= (others => '0');
+            elsif rising_edge(clk) then
+                move_up_out <= reg_up;
+                move_dn_out <= reg_dn;
+            end if;
+        end process;
 end arch;

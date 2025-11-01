@@ -43,7 +43,7 @@ begin
 
     process(clk, reset)
     begin
-        if rising_edge(reset) then
+        if reset = '1' then
             op     <= '0';
             cl     <= '0';
             up     <= '0';
