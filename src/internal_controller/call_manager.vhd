@@ -20,7 +20,7 @@ entity call_manager is
 end call_manager;
 
 architecture arch of call_manager is
-    -- Sinais intermedi·rios
+    -- Sinais intermedi√°rios
     signal merged_up        : std_logic_vector(31 downto 0);
     signal merged_dn        : std_logic_vector(31 downto 0);
     signal reg_up         : std_logic_vector(31 downto 0);
@@ -31,6 +31,7 @@ begin
     merged_dn <= move_dn_ext or move_dn_int;
 
 
+    -- Gera vetor que considera o lugar do elevador e os pedidos internos
     gen_requests: for i in 0 to 31 generate
         reg_up(i) <= '0' when (at_destination and i = next_floor) else
                      '1' when (int_request(i) = '1' and i >= current_floor) else
@@ -43,7 +44,7 @@ begin
 
     process(clk, reset)
         begin
-            if rising_edge(reset) then
+            if reset = '1' then
                 move_up_out <= (others => '0');
                 move_dn_out <= (others => '0');
             elsif rising_edge(clk) then

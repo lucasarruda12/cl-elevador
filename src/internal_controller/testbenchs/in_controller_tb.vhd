@@ -41,7 +41,7 @@ architecture sim of in_controller_tb is
     signal door_was_open     : boolean := false;
     signal door_open_time    : time := 0 ns;
 
-    -- Funcıes locais para conversao
+    -- Func√µes locais para conversao
     function status_to_string(st : std_logic_vector(1 downto 0)) return string is
     begin
         case st is
@@ -310,7 +310,7 @@ begin
             duration => 5
         );
         
-        report "  Enviando pedido interno para descer apÛs 4 clocks";
+        report "  Enviando pedido interno para descer ap√≥s 4 clocks";
         int_floor_request <= (7 => '1', others => '0');
         wait until rising_edge(clk);
         int_floor_request <= (others => '0');
@@ -362,7 +362,7 @@ begin
         report "";
         report "Todos os testes do in_controller foram concluidos!";
         report "==================================================";
-        report "           SIMULACAO CONCLUÕDA";
+        report "           SIMULACAO CONCLU√çDA";
         report "==================================================";
         
         sim_ended <= true;
