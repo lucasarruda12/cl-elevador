@@ -25,13 +25,18 @@ architecture arch of in_controller is
     signal intention_int       : std_logic_vector(1 downto 0) := "00";
     signal move_up_request_int : std_logic_vector(31 downto 0) := (others => '0');
     signal move_dn_request_int : std_logic_vector(31 downto 0) := (others => '0');
-    signal move_dn_next        : std_logic_vector(31 downto 0) := (others => '0');
-    signal move_up_next        : std_logic_vector(31 downto 0) := (others => '0');
+    signal move_up_reg         : std_logic_vector(31 downto 0) := (others => '0');
+    signal move_dn_reg         : std_logic_vector(31 downto 0) := (others => '0');
     signal current_floor_int   : integer range 0 to 31;
     signal next_floor_int      : integer range 0 to 31 := 0;
     signal status_int          : std_logic_vector(1 downto 0)  := (others => '0');
     signal at_destination_int  : boolean;
     signal call_dir            : std_logic_vector(1 downto 0)  := (others => '0');
+    
+    -- Sinais de pipeline para sincronizaÁ„o
+    signal at_destination_delayed : boolean;
+    signal call_dir_delayed       : std_logic_vector(1 downto 0);
+    signal intention_delayed      : std_logic_vector(1 downto 0);
 
     component simple_elevator is
         port (
@@ -60,7 +65,7 @@ architecture arch of in_controller is
             move_up_request   : in std_logic_vector (31 downto 0);
             move_dn_request   : in std_logic_vector (31 downto 0);
             next_floor        : in integer range 0 to 31;
-            current_floor     : integer range 0 to 31;
+            current_floor     : in integer range 0 to 31;
             status            : in std_logic_vector(1 downto 0);
             intention         : in std_logic_vector(1 downto 0);
             at_destination    : out boolean
@@ -88,7 +93,7 @@ architecture arch of in_controller is
         port ( 
             move_up_request   : in std_logic_vector (31 downto 0);
             move_dn_request   : in std_logic_vector (31 downto 0);
-            call_dir          : out std_logic_vector(1 downto 0)  := (others => '0')
+            call_dir          : out std_logic_vector(1 downto 0)
         );
     end component;
 
@@ -96,8 +101,8 @@ architecture arch of in_controller is
         port (
             clk             : in std_logic;
             reset           : in std_logic;
-            call_dir        : in std_logic_vector(1 downto 0) := (others => '0');
-            intention       : out std_logic_vector(1 downto 0) := (others => '0')
+            call_dir        : in std_logic_vector(1 downto 0);
+            intention       : out std_logic_vector(1 downto 0)
         );
     end component;
 
@@ -126,12 +131,12 @@ begin
 
     at_destination_inst: at_destination_calculator
         port map(
-            move_up_request   => move_up_request_int,
-            move_dn_request   => move_dn_request_int,
+            move_up_request   => move_up_reg,  -- Usa vers„o registrada
+            move_dn_request   => move_dn_reg,  -- Usa vers„o registrada
             next_floor        => next_floor_int,
             current_floor     => current_floor_int,
             status            => status_int,
-            intention         => intention_int,
+            intention         => intention_delayed,
             at_destination    => at_destination_int
         );
 
@@ -144,7 +149,7 @@ begin
             move_up_int    => move_up_request_int,
             move_dn_int    => move_dn_request_int,
             int_request    => int_floor_request,
-            at_destination => at_destination_int,
+            at_destination => at_destination_delayed, -- Usa vers„o atrasada
             current_floor  => current_floor_int,
             next_floor     => next_floor_int,
             move_up_out    => move_up_request_int,
@@ -153,30 +158,51 @@ begin
 
     call_analyzer_inst: call_analyzer
         port map( 
-            move_up_request   => move_up_request_int,
-            move_dn_request   => move_dn_request_int,
+            move_up_request   => move_up_reg,  -- Usa vers„o registrada
+            move_dn_request   => move_dn_reg,  -- Usa vers„o registrada
             call_dir          => call_dir
         );
+        
     intention_manager_inst: intention_manager
         port map(
             clk             => clk,
             reset           => reset,
-            call_dir        => call_dir,
+            call_dir        => call_dir_delayed, -- Usa vers„o atrasada
             intention       => intention_int
         );
 
-    process(clk, reset)
+    -- PROCESSO DE SINCRONIZA«√O
+    sync_process: process(clk, reset)
+    begin
+        if reset = '1' then
+            move_up_reg <= (others => '0');
+            move_dn_reg <= (others => '0');
+            at_destination_delayed <= false;
+            call_dir_delayed <= "00";
+            intention_delayed <= "00";
+        elsif rising_edge(clk) then
+            -- Registra os sinais para quebrar dependÍncias circulares
+            move_up_reg <= move_up_request_int;
+            move_dn_reg <= move_dn_request_int;
+            at_destination_delayed <= at_destination_int;
+            call_dir_delayed <= call_dir;
+            intention_delayed <= intention_int;
+        end if;
+    end process;
+
+    -- PROCESSO PRINCIPAL DE CONTROLE
+    control_process: process(clk, reset)
         variable left_floors : std_logic_vector(31 downto 0);
         variable zeros       : std_logic_vector(31 downto 0) := (others => '0');
     begin
-        if rising_edge(reset) then
+        if reset = '1' then
             op_int <= '0';
             cl_int <= '0';
             up_int <= '0';
             dn_int <= '0';
             status_int <= "00";
         elsif rising_edge(clk) then
-            if at_destination_int then
+            if at_destination_int then  -- Usa vers„o atualizada
                 -- Parar e abrir porta
                 op_int <= '1';
                 cl_int <= '0';
@@ -187,19 +213,20 @@ begin
                 op_int <= '0';
                 cl_int <= '1';
                 
-                if call_dir = "00" then
+                if call_dir_delayed = "00" then  -- Usa vers„o atrasada
                     -- Sem chamadas
                     status_int <= "00";
                     dn_int <= '0';
                     up_int <= '0';
                 else
                     -- Com chamadas
-                    if intention_int = "10" then -- Inten√ß√£o de subir
+                    if intention_delayed = "10" then -- Usa vers„o atrasada
+                        -- LÛgica para intenÁ„o de subir
                         if status_int = "10" or status_int = "00" then
                             -- Verificar chamadas acima
                             left_floors := (others => '0');
                             for i in next_floor_int + 1 to 31 loop
-                                left_floors(i) := move_up_request_int(i);
+                                left_floors(i) := move_up_reg(i);  -- Usa vers„o registrada
                             end loop;
                             
                             if left_floors /= zeros then
@@ -215,7 +242,7 @@ begin
                             -- Verificar chamadas abaixo
                             left_floors := (others => '0');
                             for i in 0 to next_floor_int - 1 loop
-                                left_floors(i) := move_up_request_int(i);
+                                left_floors(i) := move_up_reg(i);  -- Usa vers„o registrada
                             end loop;
                             
                             if left_floors /= zeros then
@@ -228,12 +255,12 @@ begin
                                 up_int <= '1';
                             end if;
                         end if;
-                    elsif intention_int = "01" then -- Inten√ß√£o de descer
+                    elsif intention_delayed = "01" then -- Usa vers„o atrasada
+                        -- LÛgica para intenÁ„o de descer (similar)
                         if status_int = "01" or status_int = "00" then
-                            -- Verificar chamadas abaixo
                             left_floors := (others => '0');
                             for i in 0 to next_floor_int - 1 loop
-                                left_floors(i) := move_dn_request_int(i);
+                                left_floors(i) := move_dn_reg(i);  -- Usa vers„o registrada
                             end loop;
                             
                             if left_floors /= zeros then
@@ -246,10 +273,9 @@ begin
                                 up_int <= '1';
                             end if;
                         elsif status_int = "10" then
-                            -- Verificar chamadas acima
                             left_floors := (others => '0');
                             for i in next_floor_int + 1 to 31 loop
-                                left_floors(i) := move_dn_request_int(i);
+                                left_floors(i) := move_dn_reg(i);  -- Usa vers„o registrada
                             end loop;
                             
                             if left_floors /= zeros then
@@ -263,14 +289,14 @@ begin
                             end if;
                         end if;
                     else
-                        -- Inten√ß√£o inv√°lida
+                        -- IntenÁ„o inv·lida
                         status_int <= "00";
                         up_int <= '0';
                         dn_int <= '0';
                     end if;
-                    end if;
                 end if;
             end if;
+        end if;
     end process;
 
     current_floor <= std_logic_vector(to_unsigned(current_floor_int, w));

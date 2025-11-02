@@ -37,7 +37,7 @@ test_in_controller: build
 	@echo "Executando teste para controlador interno..."
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/testbenchs/in_controller_tb.vhd
 	ghdl -e --workdir=$(WORK_DIR) --work=work in_controller_tb
-	ghdl -r --workdir=$(WORK_DIR) --work=work in_controller_tb --vcd=tb_concurrent.vcd
+	ghdl -r --workdir=$(WORK_DIR) --work=work in_controller_tb --vcd=tb_in_controller.vcd
 
 # Limpeza 
 clean:

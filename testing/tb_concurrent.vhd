@@ -91,16 +91,29 @@ begin
       el1_dr          => el1_dr,
       el1_floor       => el1_floor,
       el1_status      => el1_status,
+      el1_floor_unit  => el1_floor_unit,
+      el1_floor_ten   => el1_floor_ten,
+      el1_st_dn       => el1_st_dn,
+      el1_st_up       => el1_st_up,
 
       el2_kb          => el2_kb,
       el2_dr          => el2_dr,
       el2_floor       => el2_floor,
       el2_status      => el2_status,
+      el2_floor_unit  => el2_floor_unit,
+      el2_floor_ten   => el2_floor_ten,
+      el2_st_dn       => el2_st_dn,
+      el2_st_up       => el2_st_up,
 
       el3_kb          => el3_kb,
       el3_dr          => el3_dr,
       el3_floor       => el3_floor,
-      el3_status      => el3_status
+      el3_status      => el3_status,
+      el3_floor_unit  => el3_floor_unit,
+      el3_floor_ten   => el3_floor_ten,
+      el3_st_dn       => el3_st_dn,
+      el3_st_up       => el3_st_up
+
     );
 
   -- Simula um clk. Roda pra sempre
