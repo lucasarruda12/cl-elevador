@@ -12,7 +12,8 @@ architecture tb of tb_concurrent is
     signal out_kb_up    : std_logic_vector((2**w)-1 downto 0);
     signal out_kb_down  : std_logic_vector((2**w)-1 downto 0);
 
-    signal el1_kb          : std_logic_vector((2**w)-1 downto 0);
+    signal el1_kb          : std_logic_vector((2**w)-1 downto 0)
+      := (others => '0');
     signal el1_dr          : std_logic;
     signal el1_floor       : std_logic_vector(w-1 downto 0);
     signal el1_status      : std_logic_vector(1 downto 0);
@@ -21,7 +22,8 @@ architecture tb of tb_concurrent is
     signal el1_st_dn       : std_logic; 
     signal el1_st_up       : std_logic;
 
-    signal el2_kb          : std_logic_vector((2**w)-1 downto 0);
+    signal el2_kb          : std_logic_vector((2**w)-1 downto 0)
+      := (others => '0');
     signal el2_dr          : std_logic;
     signal el2_floor       : std_logic_vector(w-1 downto 0);
     signal el2_status      : std_logic_vector(1 downto 0);
@@ -30,7 +32,8 @@ architecture tb of tb_concurrent is
     signal el2_st_dn       : std_logic; 
     signal el2_st_up       : std_logic;
 
-    signal el3_kb          : std_logic_vector((2**w)-1 downto 0);
+    signal el3_kb          : std_logic_vector((2**w)-1 downto 0)
+      := (others => '0');
     signal el3_dr          : std_logic;
     signal el3_floor       : std_logic_vector(w-1 downto 0);
     signal el3_status      : std_logic_vector(1 downto 0);
@@ -113,7 +116,6 @@ begin
       el3_floor_ten   => el3_floor_ten,
       el3_st_dn       => el3_st_dn,
       el3_st_up       => el3_st_up
-
     );
 
   -- Simula um clk. Roda pra sempre
