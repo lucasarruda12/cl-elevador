@@ -11,8 +11,6 @@ build:
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/elevator/move_counter.vhd
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/elevator/door.vhd
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/elevator/simple_elevator.vhd
-	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/call_analyzer.vhd
-	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/intention_manager.vhd
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/next_floor_calculator.vhd
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/at_destination_calculator.vhd
 	ghdl -a --workdir=$(WORK_DIR) --work=work src/internal_controller/call_manager.vhd
